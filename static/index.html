@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AnalyticsAI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Archivo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0a0e27;
+            --secondary: #1a1f3a;
+            --accent: #00ff88;
+            --accent-dim: #00cc6a;
+            --text: #e4e4e7;
+            --text-dim: #94a3b8;
+            --border: #2d3250;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Archivo', sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, #0f1629 100%);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .mono {
+            font-family: 'DM Mono', monospace;
+        }
+
+        /* Animated background grid */
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(var(--border) 1px, transparent 1px),
+                linear-gradient(90deg, var(--border) 1px, transparent 1px);
+            background-size: 50px 50px;
+            opacity: 0.3;
+            animation: gridMove 20s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        /* Glowing orbs */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.4;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .orb-1 {
+            width: 400px;
+            height: 400px;
+            background: var(--accent);
+            top: -100px;
+            right: -100px;
+            animation: float 15s ease-in-out infinite;
+        }
+
+        .orb-2 {
+            width: 300px;
+            height: 300px;
+            background: #0088ff;
+            bottom: -50px;
+            left: -50px;
+            animation: float 12s ease-in-out infinite reverse;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(30px, -30px) scale(1.1); }
+        }
+
+        /* Container styles */
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Upload screen */
+        .upload-zone {
+            background: rgba(26, 31, 58, 0.6);
+            backdrop-filter: blur(10px);
+            border: 2px dashed var(--border);
+            border-radius: 16px;
+            padding: 4rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--accent);
+            background: rgba(26, 31, 58, 0.8);
+            transform: translateY(-2px);
+        }
+
+        .upload-zone.dragover {
+            border-color: var(--accent);
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        /* Chat interface */
+        .chat-single-column {
+            height: calc(100vh - 180px);
+        }
+
+        .chat-main {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            background: rgba(26, 31, 58, 0.4);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .chat-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            background: rgba(10, 14, 39, 0.4);
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .message {
+            padding: 1.25rem;
+            border-radius: 12px;
+            max-width: 85%;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-user {
+            background: linear-gradient(135deg, var(--accent-dim) 0%, var(--accent) 100%);
+            color: var(--primary);
+            margin-left: auto;
+            font-weight: 500;
+        }
+
+        .message-assistant {
+            background: rgba(45, 50, 80, 0.8);
+            border: 1px solid var(--border);
+        }
+
+        .chat-input-area {
+            padding: 1.5rem;
+            border-top: 1px solid var(--border);
+            background: rgba(10, 14, 39, 0.6);
+        }
+
+        .chat-input {
+            width: 100%;
+            background: rgba(26, 31, 58, 0.8);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.1);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            font-size: 0.95rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-dim) 0%, var(--accent) 100%);
+            color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 255, 136, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(45, 50, 80, 0.8);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(45, 50, 80, 1);
+            border-color: var(--accent);
+        }
+
+        /* Code blocks */
+        .code-block {
+            background: rgba(10, 14, 39, 0.8);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+            overflow-x: auto;
+        }
+
+        /* Summary display */
+        .summary-box {
+            background: linear-gradient(135deg, rgba(45, 50, 80, 0.8) 0%, rgba(26, 31, 58, 0.8) 100%);
+            border: 1px solid var(--accent);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0, 255, 136, 0.1);
+        }
+
+        .summary-box .text-gray-200 {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: var(--text);
+        }
+
+        /* Chart display */
+        .chart-container {
+            margin-top: 1rem;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .chart-container img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(45, 50, 80, 0.3);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-dim);
+        }
+
+        /* Loading indicator */
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Hide elements */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-top: 2rem;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent) 0%, #0088ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .tagline {
+            color: var(--text-dim);
+            font-size: 1rem;
+        }
+
+        input[type="text"],
+        input[type="file"] {
+            width: 100%;
+            background: rgba(26, 31, 58, 0.8);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+    </style>
+</head>
+<body>
+    <!-- Background effects -->
+    <div class="grid-bg"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">AnalyticsAI</div>
+            <div class="tagline mono">Natural language data analysis powered by AI</div>
+        </div>
+
+        <!-- Upload Screen -->
+        <div id="uploadScreen">
+            <div class="upload-zone" id="uploadZone">
+                <svg class="mx-auto mb-4" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="var(--accent)"/>
+                </svg>
+                <h2 class="text-2xl font-semibold mb-3">Upload Your Data Source</h2>
+                <p class="text-gray-400 mb-6">Drop your CSV, Excel, or enter a database connection string</p>
+                
+                <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" class="hidden">
+                <button onclick="document.getElementById('fileInput').click()" class="btn btn-primary mb-4">
+                    Choose File
+                </button>
+                
+                <div class="my-6 text-gray-500">— OR —</div>
+                
+                <input type="text" id="dbConnection" placeholder="postgresql://user:pass@host:5432/db" class="mb-4">
+                <button onclick="initSession()" class="btn btn-secondary">
+                    Connect to Database
+                </button>
+            </div>
+
+            <div id="uploadStatus" class="hidden mt-4 p-4 rounded-lg text-center"></div>
+        </div>
+
+        <!-- Chat Screen -->
+        <div id="chatScreen" class="hidden">
+            <div class="chat-single-column">
+                <div class="chat-main">
+                    <div class="chat-header">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <div class="text-sm text-gray-400">Source:</div>
+                                <div class="text-sm mono break-all" id="sourceInfo">-</div>
+                            </div>
+                            <button onclick="resetSession()" class="btn btn-secondary text-sm">
+                                New Session
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="text-center text-gray-400 py-8">
+                            <p class="text-lg">👋 Ready to analyze your data</p>
+                            <p class="text-sm mt-2">Ask me anything about your data using natural language</p>
+                        </div>
+                    </div>
+                    
+                    <div class="chat-input-area">
+                        <form onsubmit="sendMessage(event)" class="flex gap-3">
+                            <input 
+                                type="text" 
+                                id="queryInput" 
+                                class="chat-input flex-1" 
+                                placeholder="Ask a question about your data..."
+                                autocomplete="off"
+                            >
+                            <button type="submit" class="btn btn-primary px-6">
+                                Send
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let sessionId = null;
+
+        // File upload handler
+        document.getElementById('fileInput').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const statusEl = document.getElementById('uploadStatus');
+            statusEl.className = 'mt-4 p-4 rounded-lg text-center';
+            statusEl.innerHTML = '<div class="loading mx-auto mb-2"></div><div>Uploading...</div>';
+            statusEl.classList.remove('hidden');
+
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    sessionId = data.session_id;
+                    statusEl.style.background = 'rgba(0, 255, 136, 0.2)';
+                    statusEl.style.borderColor = 'var(--accent)';
+                    statusEl.innerHTML = '✓ File uploaded successfully!';
+                    
+                    setTimeout(() => {
+                        showChat(data.filename);
+                    }, 1000);
+                } else {
+                    throw new Error(data.message || 'Upload failed');
+                }
+            } catch (error) {
+                statusEl.style.background = 'rgba(255, 68, 68, 0.2)';
+                statusEl.style.borderColor = '#ff4444';
+                statusEl.innerHTML = '✗ ' + error.message;
+            }
+        });
+
+        // Database connection handler
+        async function initSession() {
+            const dbConnection = document.getElementById('dbConnection').value.trim();
+            if (!dbConnection) {
+                alert('Please enter a database connection string');
+                return;
+            }
+
+            const statusEl = document.getElementById('uploadStatus');
+            statusEl.className = 'mt-4 p-4 rounded-lg text-center';
+            statusEl.innerHTML = '<div class="loading mx-auto mb-2"></div><div>Connecting...</div>';
+            statusEl.classList.remove('hidden');
+
+            try {
+                const response = await fetch('/api/init-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ file_path: dbConnection })
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    sessionId = data.session_id;
+                    statusEl.style.background = 'rgba(0, 255, 136, 0.2)';
+                    statusEl.style.borderColor = 'var(--accent)';
+                    statusEl.innerHTML = '✓ Connected successfully!';
+                    
+                    setTimeout(() => {
+                        showChat(dbConnection);
+                    }, 1000);
+                } else {
+                    throw new Error(data.message || 'Connection failed');
+                }
+            } catch (error) {
+                statusEl.style.background = 'rgba(255, 68, 68, 0.2)';
+                statusEl.style.borderColor = '#ff4444';
+                statusEl.innerHTML = '✗ ' + error.message;
+            }
+        }
+
+        // Show chat interface
+        function showChat(sourceName) {
+            document.getElementById('uploadScreen').classList.add('hidden');
+            document.getElementById('chatScreen').classList.remove('hidden');
+            document.getElementById('sourceInfo').textContent = sourceName;
+        }
+
+        function resetSession() {
+            sessionId = null;
+            document.getElementById('chatScreen').classList.add('hidden');
+            document.getElementById('uploadScreen').classList.remove('hidden');
+            document.getElementById('chatMessages').innerHTML = `
+                <div class="text-center text-gray-400 py-8">
+                    <p class="text-lg">👋 Ready to analyze your data</p>
+                    <p class="text-sm mt-2">Ask me anything about your data using natural language</p>
+                </div>
+            `;
+        }
+
+        // Send message
+        async function sendMessage(e) {
+            e.preventDefault();
+            
+            const input = document.getElementById('queryInput');
+            const query = input.value.trim();
+            
+            if (!query || !sessionId) return;
+            
+            input.value = '';
+            addMessage(query, 'user');
+            
+            const loadingId = 'loading-' + Date.now();
+            addMessage('<div class="loading"></div> Processing your query...', 'assistant', loadingId);
+            
+            try {
+                const response = await fetch('/api/query', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        query: query
+                    })
+                });
+
+                const data = await response.json();
+                
+                // Remove loading message
+                document.getElementById(loadingId)?.remove();
+                console.log(data)
+                
+                if (data.status === 'success') {
+                    let resultHtml = '';
+                    
+                    // Show summary
+                    if (data.summary) {
+                        resultHtml += `<div class="summary-box">
+                            <div class="text-gray-200 leading-relaxed" style="white-space: pre-wrap;">${marked.parse(data.summary)}</div>
+                        </div>`;
+                    }
+                    
+                    // Show chart if available
+                    if (data.chart_url) {
+                        resultHtml += `<div class="chart-container mt-4">
+                            <img src="${data.chart_url}?t=${Date.now()}" alt="Analysis Chart" onload="this.style.opacity=1" style="opacity:0; transition: opacity 0.3s ease-in-out;">
+                        </div>`;
+                    }
+                    
+                    // If nothing to show
+                    if (!resultHtml) {
+                        resultHtml = '<div class="text-gray-400">No results to display</div>';
+                    }
+                    
+                    addMessage(resultHtml, 'assistant');
+                } else {
+                    addMessage('❌ Error: ' + escapeHtml(data.message || 'Unknown error'), 'assistant');
+                }
+            } catch (error) {
+                document.getElementById(loadingId)?.remove();
+                addMessage('❌ Error: ' + escapeHtml(error.message), 'assistant');
+            }
+        }
+
+        // Add message to chat
+        function addMessage(content, type, id = null) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message message-${type}`;
+            if (id) messageDiv.id = id;
+            messageDiv.innerHTML = content;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        // Utility functions
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Drag and drop
+        const uploadZone = document.getElementById('uploadZone');
+        
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                document.getElementById('fileInput').files = files;
+                document.getElementById('fileInput').dispatchEvent(new Event('change'));
+            }
+        });
+    </script>
+</body>
+</html>

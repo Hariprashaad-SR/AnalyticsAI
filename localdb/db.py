@@ -1,0 +1,1 @@
+files = {'file' : {'filetype' : '', 'uploaded_file' : '', 'count' : ''}}
