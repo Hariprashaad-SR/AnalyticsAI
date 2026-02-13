@@ -8,16 +8,17 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Archivo:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #0a0e27;
-            --secondary: #1a1f3a;
-            --accent: #00ff88;
-            --accent-dim: #00cc6a;
-            --text: #e4e4e7;
-            --text-dim: #94a3b8;
-            --border: #2d3250;
+            --primary: #000000;
+            --secondary: #1a1a1a;
+            --accent: #ffffff;
+            --accent-dim: #e5e5e5;
+            --text: #ffffff;
+            --text-dim: #a0a0a0;
+            --border: #333333;
         }
 
         * {
@@ -28,7 +29,7 @@
 
         body {
             font-family: 'Archivo', sans-serif;
-            background: linear-gradient(135deg, var(--primary) 0%, #0f1629 100%);
+            background: #000000;
             color: var(--text);
             min-height: 100vh;
             overflow-x: hidden;
@@ -49,7 +50,7 @@
                 linear-gradient(var(--border) 1px, transparent 1px),
                 linear-gradient(90deg, var(--border) 1px, transparent 1px);
             background-size: 50px 50px;
-            opacity: 0.3;
+            opacity: 0.2;
             animation: gridMove 20s linear infinite;
             pointer-events: none;
             z-index: 0;
@@ -65,7 +66,7 @@
             position: fixed;
             border-radius: 50%;
             filter: blur(80px);
-            opacity: 0.4;
+            opacity: 0.15;
             pointer-events: none;
             z-index: 0;
         }
@@ -73,7 +74,7 @@
         .orb-1 {
             width: 400px;
             height: 400px;
-            background: var(--accent);
+            background: #ffffff;
             top: -100px;
             right: -100px;
             animation: float 15s ease-in-out infinite;
@@ -82,7 +83,7 @@
         .orb-2 {
             width: 300px;
             height: 300px;
-            background: #0088ff;
+            background: #ffffff;
             bottom: -50px;
             left: -50px;
             animation: float 12s ease-in-out infinite reverse;
@@ -104,7 +105,7 @@
 
         /* Upload screen */
         .upload-zone {
-            background: rgba(26, 31, 58, 0.6);
+            background: rgba(26, 26, 26, 0.6);
             backdrop-filter: blur(10px);
             border: 2px dashed var(--border);
             border-radius: 16px;
@@ -116,13 +117,13 @@
 
         .upload-zone:hover {
             border-color: var(--accent);
-            background: rgba(26, 31, 58, 0.8);
+            background: rgba(26, 26, 26, 0.8);
             transform: translateY(-2px);
         }
 
         .upload-zone.dragover {
             border-color: var(--accent);
-            background: rgba(0, 255, 136, 0.1);
+            background: rgba(255, 255, 255, 0.05);
         }
 
         /* Chat interface */
@@ -134,7 +135,7 @@
             display: flex;
             flex-direction: column;
             height: 100%;
-            background: rgba(26, 31, 58, 0.4);
+            background: rgba(26, 26, 26, 0.4);
             backdrop-filter: blur(10px);
             border-radius: 16px;
             border: 1px solid var(--border);
@@ -144,7 +145,7 @@
         .chat-header {
             padding: 1.5rem;
             border-bottom: 1px solid var(--border);
-            background: rgba(10, 14, 39, 0.4);
+            background: rgba(10, 10, 10, 0.4);
         }
 
         .chat-messages {
@@ -175,26 +176,26 @@
         }
 
         .message-user {
-            background: linear-gradient(135deg, var(--accent-dim) 0%, var(--accent) 100%);
-            color: var(--primary);
+            background: #ffffff;
+            color: #000000;
             margin-left: auto;
             font-weight: 500;
         }
 
         .message-assistant {
-            background: rgba(45, 50, 80, 0.8);
+            background: rgba(45, 45, 45, 0.8);
             border: 1px solid var(--border);
         }
 
         .chat-input-area {
             padding: 1.5rem;
             border-top: 1px solid var(--border);
-            background: rgba(10, 14, 39, 0.6);
+            background: rgba(10, 10, 10, 0.6);
         }
 
         .chat-input {
             width: 100%;
-            background: rgba(26, 31, 58, 0.8);
+            background: rgba(26, 26, 26, 0.8);
             border: 1px solid var(--border);
             color: var(--text);
             padding: 1rem 1.5rem;
@@ -206,7 +207,7 @@
         .chat-input:focus {
             outline: none;
             border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.1);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
         }
 
         /* Buttons */
@@ -221,29 +222,29 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, var(--accent-dim) 0%, var(--accent) 100%);
-            color: var(--primary);
+            background: #ffffff;
+            color: #000000;
         }
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0, 255, 136, 0.3);
+            box-shadow: 0 8px 24px rgba(255, 255, 255, 0.3);
         }
 
         .btn-secondary {
-            background: rgba(45, 50, 80, 0.8);
+            background: rgba(45, 45, 45, 0.8);
             color: var(--text);
             border: 1px solid var(--border);
         }
 
         .btn-secondary:hover {
-            background: rgba(45, 50, 80, 1);
+            background: rgba(45, 45, 45, 1);
             border-color: var(--accent);
         }
 
         /* Code blocks */
         .code-block {
-            background: rgba(10, 14, 39, 0.8);
+            background: rgba(10, 10, 10, 0.8);
             border: 1px solid var(--border);
             border-radius: 8px;
             padding: 1rem;
@@ -254,12 +255,12 @@
 
         /* Summary display */
         .summary-box {
-            background: linear-gradient(135deg, rgba(45, 50, 80, 0.8) 0%, rgba(26, 31, 58, 0.8) 100%);
+            background: linear-gradient(135deg, rgba(45, 45, 45, 0.8) 0%, rgba(26, 26, 26, 0.8) 100%);
             border: 1px solid var(--accent);
             border-radius: 12px;
             padding: 1.5rem;
             margin-top: 0.5rem;
-            box-shadow: 0 4px 12px rgba(0, 255, 136, 0.1);
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
         }
 
         .summary-box .text-gray-200 {
@@ -289,7 +290,7 @@
         }
 
         ::-webkit-scrollbar-track {
-            background: rgba(45, 50, 80, 0.3);
+            background: rgba(45, 45, 45, 0.3);
         }
 
         ::-webkit-scrollbar-thumb {
@@ -298,7 +299,7 @@
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: var(--accent-dim);
+            background: #666666;
         }
 
         /* Loading indicator */
@@ -331,9 +332,7 @@
         .logo {
             font-size: 2.5rem;
             font-weight: 700;
-            background: linear-gradient(135deg, var(--accent) 0%, #0088ff 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: #ffffff;
             margin-bottom: 0.5rem;
         }
 
@@ -345,7 +344,7 @@
         input[type="text"],
         input[type="file"] {
             width: 100%;
-            background: rgba(26, 31, 58, 0.8);
+            background: rgba(26, 26, 26, 0.8);
             border: 1px solid var(--border);
             color: var(--text);
             padding: 0.75rem 1rem;
@@ -375,12 +374,12 @@
         <div id="uploadScreen">
             <div class="upload-zone" id="uploadZone">
                 <svg class="mx-auto mb-4" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="var(--accent)"/>
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="#ffffff"/>
                 </svg>
                 <h2 class="text-2xl font-semibold mb-3">Upload Your Data Source</h2>
                 <p class="text-gray-400 mb-6">Drop your CSV, Excel, or enter a database connection string</p>
                 
-                <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" class="hidden">
+                <input type="file" id="fileInput" accept=".csv,.xlsx,.xls, .webp, .png" class="hidden">
                 <button onclick="document.getElementById('fileInput').click()" class="btn btn-primary mb-4">
                     Choose File
                 </button>
@@ -464,8 +463,8 @@
 
                 if (data.status === 'success') {
                     sessionId = data.session_id;
-                    statusEl.style.background = 'rgba(0, 255, 136, 0.2)';
-                    statusEl.style.borderColor = 'var(--accent)';
+                    statusEl.style.background = 'rgba(255, 255, 255, 0.1)';
+                    statusEl.style.borderColor = '#ffffff';
                     statusEl.innerHTML = '✓ File uploaded successfully!';
                     
                     setTimeout(() => {
@@ -505,8 +504,8 @@
 
                 if (data.status === 'success') {
                     sessionId = data.session_id;
-                    statusEl.style.background = 'rgba(0, 255, 136, 0.2)';
-                    statusEl.style.borderColor = 'var(--accent)';
+                    statusEl.style.background = 'rgba(255, 255, 255, 0.1)';
+                    statusEl.style.borderColor = '#ffffff';
                     statusEl.innerHTML = '✓ Connected successfully!';
                     
                     setTimeout(() => {
@@ -529,6 +528,23 @@
             document.getElementById('sourceInfo').textContent = sourceName;
         }
 
+        function toggleChart(chartId, btn) {
+            const chart = document.getElementById(chartId);
+            const label = btn.querySelector("span");
+            const arrow = btn.querySelectorAll("span")[1];
+
+            if (chart.classList.contains("hidden")) {
+                chart.classList.remove("hidden");
+                label.textContent = "Hide chart";
+                arrow.textContent = "▲";
+            } else {
+                chart.classList.add("hidden");
+                label.textContent = "Show chart";
+                arrow.textContent = "▼";
+            }
+        }
+
+
         function resetSession() {
             sessionId = null;
             document.getElementById('chatScreen').classList.add('hidden');
@@ -540,6 +556,30 @@
                 </div>
             `;
         }
+
+        function filterTable(tableId, inputId) {
+            const value = document.getElementById(inputId).value.toLowerCase();
+            const rows = document.querySelectorAll(`#${tableId} tbody tr`);
+
+            rows.forEach(row => {
+                row.style.display = row.innerText.toLowerCase().includes(value)
+                ? ""
+                : "none";
+            });
+        }
+
+        function setInputValue(text) {
+            const input = document.getElementById("queryInput");
+            if (!input) return;
+
+            input.value = text;
+            input.focus();
+
+            // Optional: move cursor to end
+            input.setSelectionRange(input.value.length, input.value.length);
+        }
+
+
 
         // Send message
         async function sendMessage(e) {
@@ -577,17 +617,131 @@
                     
                     // Show summary
                     if (data.summary) {
-                        resultHtml += `<div class="summary-box">
-                            <div class="text-gray-200 leading-relaxed" style="white-space: pre-wrap;">${marked.parse(data.summary)}</div>
-                        </div>`;
+                    const { text, table } = data.summary;
+
+                    const hasTable =
+                        table &&
+                        Array.isArray(table.columns) &&
+                        table.columns.length > 0 &&
+                        Array.isArray(table.rows) &&
+                        table.rows.length > 0;
+
+                    const hasText = text && text.trim().length > 0;
+
+                    // ---------- TABLE FIRST ----------
+                    if (hasTable) {
+                        const tableId = `table_${Date.now()}`;
+                        const filterId = `filter_${Date.now()}`;
+
+                        resultHtml += `
+                        <div class="mt-4 space-y-4">
+
+                            <!-- Filter -->
+                            <input
+                            id="${filterId}"
+                            type="text"
+                            placeholder="Filter rows..."
+                            onkeyup="filterTable('${tableId}', '${filterId}')"
+                            class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md
+                                    text-gray-200 placeholder-gray-400 focus:outline-none"
+                            />
+
+                            <!-- Table -->
+                            <div class="overflow-x-auto">
+                            <table id="${tableId}" class="min-w-full border border-gray-700 rounded-lg">
+                                <thead class="bg-gray-800">
+                                <tr>
+                                    ${table.columns.map(col => `
+                                    <th class="px-4 py-2 text-left border-b border-gray-700 text-gray-300">
+                                        ${col.replace(/_/g, " ").toUpperCase()}
+                                    </th>
+                                    `).join("")}
+                                </tr>
+                                </thead>
+                                <tbody>
+                                ${table.rows.map(row => `
+                                    <tr class="hover:bg-gray-900">
+                                    ${row.map(cell => `
+                                        <td class="px-4 py-2 border-b border-gray-800 text-gray-200">
+                                        ${cell}
+                                        </td>
+                                    `).join("")}
+                                    </tr>
+                                `).join("")}
+                                </tbody>
+                            </table>
+                            </div>
+                        </div>
+                        `;
                     }
-                    
+
+                    // ---------- TEXT BELOW ----------
+                    if (hasText) {
+                        resultHtml += `
+                        <div class="bg-gray-900 p-4 rounded-lg mt-3">
+                            <p class="text-gray-300 leading-relaxed">
+                            ${text}
+                            </p>
+                        </div>
+                        `;
+                    }
+                    }
+
                     // Show chart if available
-                    if (data.chart_url) {
-                        resultHtml += `<div class="chart-container mt-4">
-                            <img src="${data.chart_url}?t=${Date.now()}" alt="Analysis Chart" onload="this.style.opacity=1" style="opacity:0; transition: opacity 0.3s ease-in-out;">
-                        </div>`;
-                    }
+                 if (data.chart_url) {
+    const chartId = `chart_${Date.now()}`;
+    const plotSpec = JSON.parse(data.chart_url);
+
+    resultHtml += `
+        <div class="mt-4 border border-gray-700 rounded-lg overflow-hidden">
+            <button
+                onclick="toggleChart('${chartId}', this)"
+                class="w-full flex justify-between items-center px-4 py-2
+                       bg-gray-800 text-gray-200 hover:bg-gray-700 transition"
+            >
+                <span> Show chart</span>
+                <span class="text-sm opacity-70">▼</span>
+            </button>
+
+            <div id="${chartId}" class="hidden bg-gray-900 p-3">
+                <div id="${chartId}_plot" class="w-full h-[450px]"></div>
+            </div>
+        </div>
+    `;
+
+    setTimeout(() => {
+        Plotly.newPlot(
+            `${chartId}_plot`,
+            plotSpec.data,
+            plotSpec.layout,
+            { responsive: true }
+        );
+    }, 0);
+}
+
+
+
+                    // ---------- FOLLOW-UP QUESTIONS ----------
+                    if (data.summary?.followups && data.summary.followups.length > 0) {
+    resultHtml += `
+        <div class="mt-4">
+            <p class="text-gray-400 mb-2 text-sm">You can also ask:</p>
+            <div class="flex flex-wrap gap-2">
+                ${data.summary.followups.map(q => `
+                    <button
+                        onclick="setInputValue('${q.replace(/'/g, "\\'")}')"
+                        class="px-3 py-1.5 rounded-full bg-gray-800 border border-gray-700
+                               text-gray-200 text-sm hover:bg-gray-700 transition"
+                    >
+                        ${q}
+                    </button>
+                `).join("")}
+            </div>
+        </div>
+    `;
+}
+
+
                     
                     // If nothing to show
                     if (!resultHtml) {
