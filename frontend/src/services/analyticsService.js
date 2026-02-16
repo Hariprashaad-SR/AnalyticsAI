@@ -1,7 +1,6 @@
 const BASE_URL = 'http://localhost:8000/api';
 
 /**
- * Uploads a CSV/Excel/image file and initialises a session.
  * @param {File} file
  * @returns {Promise<{ session_id: string, filename: string }>}
  */
@@ -22,7 +21,6 @@ export async function uploadFile(file) {
 }
 
 /**
- * Initialises a session from a database connection string or file path.
  * @param {string} connectionString
  * @returns {Promise<{ session_id: string }>}
  */
@@ -41,7 +39,6 @@ export async function initSession(connectionString) {
 }
 
 /**
- * Sends a natural-language query for an active session.
  * @param {string} sessionId
  * @param {string} query
  * @returns {Promise<{ summary: object, chart_url: string|null }>}

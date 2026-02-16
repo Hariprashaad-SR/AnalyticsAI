@@ -7,7 +7,7 @@ export default defineConfig({
     // Proxies /api/* to the backend during development
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'http://localhost:8001',
         changeOrigin: true,
       },
     },

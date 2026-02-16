@@ -5,7 +5,7 @@ import UploadScreen from './components/UploadScreen';
 import ChatScreen from './components/ChatScreen';
 
 export default function App() {
-  const [session, setSession] = useState(null); // { id, sourceName }
+  const [session, setSession] = useState(null);
 
   function handleSessionReady(sessionId, sourceName) {
     setSession({ id: sessionId, sourceName });

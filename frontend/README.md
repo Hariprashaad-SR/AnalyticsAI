@@ -9,7 +9,7 @@ Natural-language data analysis frontend, built with **React 18 + Vite + Tailwind
 ```
 analytics-ai/
 ├── index.html                   # Vite HTML entry (loads Plotly CDN)
-├── vite.config.js               # Vite + dev proxy → backend :5000
+├── vite.config.js               # Vite + dev proxy → backend :8001
 ├── tailwind.config.js
 ├── postcss.config.js
 ├── package.json
@@ -45,7 +45,7 @@ npm install
 npm run dev        # starts on http://localhost:5173
 ```
 
-> The Vite dev server proxies `/api/*` to `http://localhost:5000` — update
+> The Vite dev server proxies `/api/*` to `http://localhost:8001` — update
 > `vite.config.js` if your backend runs on a different port.
 
 ---

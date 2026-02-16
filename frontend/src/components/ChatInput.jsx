@@ -6,7 +6,6 @@ import { useEffect, useRef } from 'react';
 export default function ChatInput({ value, onChange, onSubmit, disabled }) {
   const inputRef = useRef(null);
 
-  // Expose focus method via ref & auto-focus on mount
   useEffect(() => {
     inputRef.current?.focus();
   }, []);

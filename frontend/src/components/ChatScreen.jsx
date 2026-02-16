@@ -12,12 +12,10 @@ export default function ChatScreen({ sessionId, sourceName, onReset }) {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // Scroll to bottom whenever messages update
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  /** Adds a message object to the list */
   function addMessage(msg) {
     setMessages((prev) => [...prev, { id: Date.now() + Math.random(), ...msg }]);
   }
@@ -33,13 +31,11 @@ export default function ChatScreen({ sessionId, sourceName, onReset }) {
     try {
       const data = await sendQuery(sessionId, query);
 
-      // Parse chart spec if present
       let chartSpec = null;
       if (data.chart_url) {
         try {
           chartSpec = JSON.parse(data.chart_url);
         } catch {
-          // ignore parse errors
         }
       }
 
@@ -51,7 +47,6 @@ export default function ChatScreen({ sessionId, sourceName, onReset }) {
     }
   }
 
-  /** Called by FollowUpChips */
   function handleFollowUp(question) {
     setInputValue(question);
   }
@@ -59,7 +54,6 @@ export default function ChatScreen({ sessionId, sourceName, onReset }) {
   return (
     <div className="chat-single-column">
       <div className="chat-main">
-        {/* Header */}
         <div className="chat-header">
           <div className="flex justify-between items-center">
             <div>
@@ -72,7 +66,6 @@ export default function ChatScreen({ sessionId, sourceName, onReset }) {
           </div>
         </div>
 
-        {/* Messages */}
         <div className="chat-messages">
           {messages.length === 0 && (
             <div className="text-center text-gray-400 py-8">
@@ -99,7 +92,6 @@ export default function ChatScreen({ sessionId, sourceName, onReset }) {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input */}
         <ChatInput
           value={inputValue}
           onChange={setInputValue}

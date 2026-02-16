@@ -1,14 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 
 /**
- * @param {{ chartSpec: object }} props  – Parsed Plotly JSON spec
+ * @param {{ chartSpec: object }} props  
  */
 export default function ChartDisplay({ chartSpec }) {
   const [visible, setVisible] = useState(false);
   const plotRef = useRef(null);
   const renderedRef = useRef(false);
 
-  // Render plot when first revealed
   useEffect(() => {
     if (visible && !renderedRef.current && plotRef.current && window.Plotly) {
       window.Plotly.newPlot(plotRef.current, chartSpec.data, chartSpec.layout, {
