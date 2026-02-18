@@ -224,6 +224,45 @@ FINAL REQUIREMENT:
 
 
 
+CHART_GEN_PROMPT2 = """
+You are a senior data visualization expert.
+
+TASK:
+Generate HIGH-QUALITY Python code to visualize the given data.
+
+INPUTS:
+- Chart type: Decide the most appropriate chart type based on the USER QUERY : {user_query}
+- Data: {data}
+
+STRICT REQUIREMENTS:
+- Use ONLY matplotlib.
+- Produce ONE clear, professional-quality chart.
+- Add:
+  • Title
+  • Axis labels
+  • Legend (if applicable)
+  • Grid (if useful)
+- Choose proper figure size.
+- Sort data if it improves readability.
+- Do NOT print data.
+- Do NOT explain anything.
+- Do NOT use markdown.
+- output_path should be depend on the graph used, eg. "Sales_Bar_Chart_datetime.jpg" where datetime is the current date and time
+- The chart MUST be saved as a JPG using:
+  plt.savefig(output_path, format="jpg", dpi=300, bbox_inches="tight")
+- After saving, call plt.close().
+- Dont use Decimal(), and only use simple python functions in the code
+
+OUTPUT RULES:
+- Output ONLY executable Python code.
+- No comments.
+- No extra text.
+
+BEGIN.
+""".strip()
+
+
+
 FILE_CLASSIFICATION_PROMPT = """
 You are a file type classifier.
 
@@ -665,6 +704,7 @@ Never output anything outside this JSON object.
 """
 
 
+
 TABLE_EXTRACTION_PROMPT = """
 You are an expert at understanding visual information from images, including
 tables, charts, graphs, and text.
@@ -738,6 +778,7 @@ EDGE CASES
 Do NOT include markdown, explanations, or extra keys.
 
 """
+
 
 
 SUMMARISE_PROMPT = """

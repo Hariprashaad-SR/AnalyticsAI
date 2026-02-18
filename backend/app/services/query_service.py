@@ -15,6 +15,6 @@ def run_query(
     })
 
     result = convert_decimals(result)
-    save_history(session_id, query, str(result.get("summary", "")))
+    save_history(session_id, query, str(result.get("summary", "")), str(result.get("chart_url", "")), str(result.get("report", "")))
 
     return result

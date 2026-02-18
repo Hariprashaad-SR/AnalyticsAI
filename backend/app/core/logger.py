@@ -3,13 +3,12 @@ import sys
 from typing import Optional
 from colorama import Fore, Style, init
 
-# init colorama once
 init(autoreset=True)
 
 
 class ColorFormatter(logging.Formatter):
     COLORS = {
-        logging.INFO: Fore.MAGENTA,      # purple
+        logging.INFO: Fore.MAGENTA, 
         logging.WARNING: Fore.YELLOW,
         logging.ERROR: Fore.RED,
         logging.CRITICAL: Fore.MAGENTA + Style.BRIGHT,
@@ -18,12 +17,10 @@ class ColorFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
         color = self.COLORS.get(record.levelno, "")
 
-        # color level name
         record.levelname = f"{color}{record.levelname}{Style.RESET_ALL}"
 
-        # color message
         record.msg = f"{color}{record.getMessage()}{Style.RESET_ALL}"
-        record.args = ()  # prevent double formatting
+        record.args = ()  
 
         return super().format(record)
 
@@ -43,11 +40,9 @@ class AppLogger:
 
         handlers = []
 
-        # Console
         console = logging.StreamHandler(sys.stdout)
         handlers.append(console)
 
-        # Optional file (no colors)
         if log_file:
             handlers.append(logging.FileHandler(log_file))
 

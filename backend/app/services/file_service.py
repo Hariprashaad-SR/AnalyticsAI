@@ -2,9 +2,7 @@ import os
 import shutil
 from fastapi import UploadFile
 
-
 UPLOAD_DIR = "uploads"
-
 
 def save_uploaded_file(file: UploadFile) -> str:
     os.makedirs(UPLOAD_DIR, exist_ok=True)

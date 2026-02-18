@@ -1,0 +1,370 @@
+
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <title>Analysis Report</title>
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+        <style>
+          :root {
+            --primary: #2563eb;
+            --primary-light: #60a5fa;
+            --bg-dark: #0f172a;
+            --bg-darker: #0a0f1e;
+            --surface: #1e293b;
+            --surface-light: #334155;
+            --border: #475569;
+            --text: #e2e8f0;
+            --text-dim: #94a3b8;
+            --text-bright: #f1f5f9;
+          }
+
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+
+          body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg-darker);
+            color: var(--text);
+            line-height: 1.6;
+            font-size: 15px;
+            padding: 0;
+            margin: 0;
+          }
+
+          .report-container {
+            max-width: 100%;
+            margin: 0;
+            background: var(--bg-dark);
+            padding: 2rem;
+          }
+
+          header {
+            margin-bottom: 2.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 3px solid var(--primary);
+            position: relative;
+          }
+
+          header::after {
+            content: "";
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 120px;
+            height: 3px;
+            background: linear-gradient(to right, var(--primary), var(--primary-light));
+          }
+
+          h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-bright);
+            margin-bottom: 0.5rem;
+          }
+
+          .subtitle {
+            color: var(--text-dim);
+            font-size: 1rem;
+          }
+
+          h2 {
+            color: var(--text-bright);
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 2rem 0 1rem;
+            border-left: 5px solid var(--primary);
+            padding-left: 1rem;
+          }
+
+          h3 {
+            color: var(--text);
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 1.8rem 0 1rem;
+          }
+
+          h4, h5, h6 {
+            color: var(--text);
+            font-weight: 600;
+            margin: 1.5rem 0 0.8rem;
+          }
+
+          p {
+            margin-bottom: 1rem;
+            color: var(--text);
+          }
+
+          ul, ol {
+            margin-left: 1.8rem;
+            margin-bottom: 1rem;
+            padding-left: 0.5rem;
+          }
+
+          li {
+            margin-bottom: 0.4rem;
+            color: var(--text);
+          }
+
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            font-size: 0.92rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            border-radius: 8px;
+            overflow: hidden;
+            background: var(--surface);
+          }
+
+          th {
+            padding: 12px 14px;
+            background: var(--primary);
+            color: white;
+            text-transform: uppercase;
+            font-size: 0.84rem;
+            font-weight: 600;
+            text-align: left;
+          }
+
+          td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text);
+          }
+
+          tr:nth-child(even) {
+            background: rgba(51, 65, 85, 0.3);
+          }
+
+          tr:hover {
+            background: rgba(51, 65, 85, 0.5);
+          }
+
+          tbody tr:last-child td {
+            border-bottom: none;
+          }
+
+          blockquote {
+            border-left: 4px solid var(--primary-light);
+            padding-left: 1.2rem;
+            margin: 1.5rem 0;
+            font-style: italic;
+            color: var(--text-dim);
+          }
+
+          strong, b {
+            color: var(--text-bright);
+            font-weight: 600;
+          }
+
+          a {
+            color: var(--primary-light);
+            text-decoration: underline;
+            transition: color 0.2s;
+          }
+
+          a:hover {
+            color: #93c5fd;
+          }
+
+          code {
+            background: var(--surface);
+            color: #fbbf24;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.88rem;
+          }
+
+          pre {
+            background: var(--surface);
+            padding: 1rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 1.2rem 0;
+            border: 1px solid var(--border);
+          }
+
+          pre code {
+            background: none;
+            padding: 0;
+            color: var(--text);
+          }
+
+          hr {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 2rem 0;
+          }
+
+          img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 1.5rem auto;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+          }
+
+          footer {
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+          }
+
+          .toc {
+            background: var(--surface);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+            border: 1px solid var(--border);
+          }
+
+          .highlight {
+            background: rgba(37, 99, 235, 0.2);
+            padding: 0.1rem 0.3rem;
+            border-radius: 3px;
+          }
+
+          .muted {
+            color: var(--text-dim);
+          }
+        </style>
+      </head>
+
+      <body>
+        <div class="report-container">
+          <header>
+            <h1>Analysis Report</h1>
+            <div class="subtitle">Generated by AnalyticsAI</div>
+          </header>
+
+          <h1 id="academic-performance-dashboard-dualsemester-analysis">Academic Performance Dashboard – Dual‑Semester Analysis</h1>
+<p><strong>Date:</strong> February 18, 2026<br />
+<strong>Prepared by:</strong> AnalyticsAI  </p>
+<hr />
+<h2 id="executive-summary">Executive Summary</h2>
+<ul>
+<li>The cohort’s <strong>overall average total score</strong> across all eight subjects (both semesters) is <strong>646.9 points</strong> per student, indicating a solid mid‑range performance when aggregating the full curriculum.  </li>
+<li><strong>Subject‑level averages</strong> reveal that <strong>English (84.7)</strong> and <strong>Computer Networks (83.7)</strong> are the strongest disciplines, while <strong>Chemistry (77.8)</strong> lags slightly. In the second semester, <strong>Data Structures (82.3)</strong> and <strong>Databases (80.5)</strong> outperform <strong>Operating Systems (79.3)</strong>.  </li>
+<li>The <strong>top‑5 high‑achievers</strong> (e.g., Sneha Iyer – 723 points) are clustered above the 700‑point mark, whereas the <strong>bottom‑5</strong> (e.g., Karthik Raj – 562 points) fall below 640, underscoring a <strong>≈ 160‑point spread</strong> between extremes.  </li>
+<li><strong>Student distribution</strong> across combined‑mark brackets shows <strong>7 students</strong> in the <strong>601‑800</strong> range and <strong>3 students</strong> in the <strong>401‑600</strong> range; lower brackets contain no recorded entries.  </li>
+<li>A <strong>strong positive correlation (r ≈ 0.998)</strong> exists between <strong>Maths (Semester 1)</strong> and <strong>Data Structures (Semester 2)</strong> scores, suggesting that proficiency in quantitative reasoning translates consistently to programming performance.  </li>
+<li><strong>Semester‑to‑semester trend</strong> is ambiguous: one metric reports a <strong>‑4.7‑point dip</strong> in average total marks, while another indicates a <strong>+4.7‑point rise</strong> (from 321.1 to 325.8). This inconsistency highlights a data‑quality limitation that must be resolved before definitive conclusions on temporal performance can be drawn.  </li>
+</ul>
+<p>Collectively, these insights point to <strong>subject‑specific strengths</strong>, a <strong>broad achievement spread</strong>, and <strong>high internal consistency</strong> between math‑related competencies, while also flagging <strong>data reliability concerns</strong> for semester‑level comparisons.</p>
+<hr />
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol>
+<li><a href="#1-introduction">Introduction</a>  </li>
+<li><a href="#2-key-findings">Key Findings</a><br />
+   - 2.1 Overall Cohort Performance<br />
+   - 2.2 Subject‑Level Averages (Semester 1 &amp; 2)<br />
+   - 2.3 Top &amp; Bottom Performers<br />
+   - 2.4 Distribution Across Combined‑Mark Ranges<br />
+   - 2.5 Correlation Between Core Disciplines<br />
+   - 2.6 Semester‑to‑Semester Trend (Data Conflict)  </li>
+<li><a href="#3-strategic-insights--implications">Strategic Insights &amp; Implications</a>  </li>
+<li><a href="#4-actionable-recommendations">Actionable Recommendations</a>  </li>
+<li><a href="#5-conclusion">Conclusion</a>  </li>
+</ol>
+<hr />
+<h2 id="1-introduction">1. Introduction</h2>
+<p>This report synthesizes a snapshot of academic outcomes for a cohort of ten students across <strong>two semesters</strong> and <strong>eight subjects</strong> (four per semester). The analysis draws exclusively from pre‑computed aggregates (averages, rankings, distributions, correlation, and a bar chart) supplied in the source summaries.  </p>
+<p><strong>Purpose</strong> – To surface performance patterns, identify high‑ and low‑performing segments, and uncover relationships that can inform curriculum planning, student support, and further analytical work.  </p>
+<p><strong>Scope &amp; Methodology</strong> – All figures originate from the provided statistical summaries; no raw score data were accessed. Calculations such as averages, rankings, and Pearson correlation were pre‑computed. Visualisation is limited to a single bar chart that ranks subjects by average score.  </p>
+<p><strong>Limitations</strong> –<br />
+- <strong>Inconsistent semester‑level totals:</strong> one summary reports a decline (‑4.7 points) while another reports a gain (+4.7 points).<br />
+- <strong>Missing lower‑range distribution data</strong> (0‑200, 201‑400) prevents a full view of the performance spectrum.<br />
+- <strong>No demographic or contextual variables</strong> (e.g., attendance, prior GPA) are available to explain observed patterns.  </p>
+<hr />
+<h2 id="2-key-findings">2. Key Findings</h2>
+<h3 id="21-overall-cohort-performance">2.1 Overall Cohort Performance</h3>
+<p>The <strong>mean combined total</strong> across all eight subjects is <strong>646.9 points</strong> per student. This aggregate benchmark serves as a reference point for evaluating individual and subgroup outcomes against the cohort baseline.  </p>
+<h3 id="22-subjectlevel-averages-semester-1-2">2.2 Subject‑Level Averages (Semester 1 &amp; 2)</h3>
+<p><strong>Semester 1:</strong><br />
+- Mathematics 79.8, Physics 78.8, Chemistry 77.8, English 84.7.<br />
+- <em>English</em> emerges as the strongest discipline, while <em>Chemistry</em> trails.  </p>
+<p><strong>Semester 2:</strong><br />
+- Data Structures 82.3, Databases 80.5, Operating Systems 79.3, Computer Networks 83.7.<br />
+- <em>Computer Networks</em> leads the second‑semester suite; <em>Operating Systems</em> records the lowest average.  </p>
+<p><strong>Combined View (Bar Chart)</strong>  </p>
+<p><img alt="Average Score Bar Chart" src="saved_graphs/Average_Score_Bar_Chart_20260218_135040.jpg" /><br />
+<em>Chart: Average scores for each subject across both semesters, ordered from highest to lowest.</em></p>
+<p>The chart reinforces the textual ranking: <strong>English (84.7) &gt; Computer Networks (83.7) &gt; Data Structures (82.3) &gt; Databases (80.5) &gt; Maths (79.8) &gt; Operating Systems (79.3) &gt; Physics (78.8) &gt; Chemistry (77.8).</strong>  </p>
+<h3 id="23-top-bottom-performers">2.3 Top &amp; Bottom Performers</h3>
+<ul>
+<li><strong>Top‑5</strong> (combined total ≥ 663): Sneha Iyer (723), Neha Patel (721), Ananya Gupta (705), Priya Sharma (677), Pooja Nair (663).  </li>
+<li><strong>Bottom‑5</strong> (combined total ≤ 637): Karthik Raj (562), Rahul Verma (578), Vishal Mehta (592), Rohit Singh (611), Arun Kumar (637).  </li>
+</ul>
+<p>The <strong>performance spread</strong> of <strong>~ 160 points</strong> suggests notable heterogeneity in learning outcomes.  </p>
+<h3 id="24-distribution-across-combinedmark-ranges">2.4 Distribution Across Combined‑Mark Ranges</h3>
+<ul>
+<li><strong>401‑600:</strong> 3 students  </li>
+<li><strong>601‑800:</strong> 7 students  </li>
+<li><strong>0‑200 &amp; 201‑400:</strong> No data reported  </li>
+</ul>
+<p>The concentration of students in the <strong>601‑800</strong> bracket indicates a generally <strong>above‑average</strong> cohort, yet the lack of lower‑range data hampers a complete distributional assessment.  </p>
+<h3 id="25-correlation-between-core-disciplines">2.5 Correlation Between Core Disciplines</h3>
+<p>A <strong>Pearson correlation of 0.998</strong> between <strong>Maths (Semester 1)</strong> and <strong>Data Structures (Semester 2)</strong> signifies an <strong>extremely strong positive linear relationship</strong>. Students who excel in quantitative reasoning tend to replicate that success in programming concepts.  </p>
+<h3 id="26-semestertosemester-trend-data-conflict">2.6 Semester‑to‑Semester Trend (Data Conflict)</h3>
+<ul>
+<li><strong>Metric A</strong>: Average total marks per student <strong>decreased by 4.70 points</strong> from Semester 1 to Semester 2.  </li>
+<li><strong>Metric B</strong>: Average <strong>semester‑1 total</strong> was <strong>321.1</strong>, rising to <strong>325.8</strong> in Semester 2 (a +4.7‑point increase).  </li>
+</ul>
+<p>The contradictory figures prevent a definitive statement on whether overall performance improved or declined between semesters. This discrepancy should be investigated (e.g., verify calculation bases, sample consistency).  </p>
+<hr />
+<h2 id="3-strategic-insights-implications">3. Strategic Insights &amp; Implications</h2>
+<ul>
+<li><strong>Subject Strengths &amp; Weaknesses:</strong> English and Computer Networks consistently outperform other subjects, suggesting effective teaching methods or higher student engagement in these areas. Conversely, Chemistry and Operating Systems may benefit from curriculum review or supplemental instruction.  </li>
+<li><strong>Performance Heterogeneity:</strong> The wide gap between top‑ and bottom‑ranked students indicates that <strong>one‑size‑fits‑all</strong> instructional strategies may leave high‑potential learners under‑challenged and struggling students unsupported. Targeted interventions (e.g., tutoring, enrichment) are warranted.  </li>
+<li><strong>Strong Math‑Programming Link:</strong> The near‑perfect correlation underscores the importance of <strong>foundational quantitative skills</strong> for success in later technical courses. Strengthening math fundamentals could have cascading benefits for computer‑science outcomes.  </li>
+<li><strong>Data Quality Concern:</strong> The semester‑level conflict highlights the need for <strong>rigorous data validation</strong> before trend‑based decisions (e.g., resource allocation, curriculum adjustments) are made.  </li>
+<li><strong>Distribution Skew:</strong> With the majority of students clustered in the <strong>601‑800</strong> band, the cohort overall meets or exceeds the average benchmark (646.9). However, the absence of lower‑range data may mask at‑risk individuals who fall below institutional thresholds.  </li>
+</ul>
+<hr />
+<h2 id="4-actionable-recommendations">4. Actionable Recommendations</h2>
+<p><strong>Priority 1 – Resolve Semester‑Level Data Conflict</strong><br />
+- <strong>Description:</strong> Conduct a data audit to reconcile the divergent average‑total figures (‑4.7 vs. +4.7 points). Verify calculation formulas, student inclusion criteria, and any weighting differences.<br />
+- <strong>Rationale:</strong> Accurate trend analysis is essential for strategic planning; conflicting data undermines confidence in any semester‑to‑semester conclusions.<br />
+- <strong>Expected Impact:</strong> Clear, reliable metrics will enable evidence‑based decisions on curriculum pacing and resource distribution.  </p>
+<p><strong>Priority 2 – Strengthen Underperforming Subjects</strong><br />
+- <strong>Description:</strong> Deploy focused faculty development and supplemental learning resources for <strong>Chemistry</strong> and <strong>Operating Systems</strong> (e.g., labs, tutoring, revised assessments).<br />
+- <strong>Rationale:</strong> These subjects consistently record the lowest averages, dragging down overall cohort performance.<br />
+- <strong>Expected Impact:</strong> Incremental improvements (2‑4 percentage points) could lift the cohort’s combined average by ~5‑10 points.  </p>
+<p><strong>Priority 3 – Implement Tiered Academic Support</strong><br />
+- <strong>Description:</strong> Create a two‑track support system: <strong>enrichment programs</strong> for top‑performers (advanced projects, research opportunities) and <strong>remedial workshops</strong> for bottom‑quartile students identified via the combined‑mark distribution.<br />
+- <strong>Rationale:</strong> The 160‑point spread signals divergent learning needs that a uniform approach cannot address.<br />
+- <strong>Expected Impact:</strong> Reduce the performance gap by at least 20 points, elevating the bottom‑5 average toward the cohort mean.  </p>
+<p><strong>Priority 4 – Leverage Math Foundations for CS Success</strong><br />
+- <strong>Description:</strong> Integrate <strong>math‑focused preparatory modules</strong> into the Data Structures and broader computer‑science curriculum, emphasizing analytical problem‑solving.<br />
+- <strong>Rationale:</strong> The 0.998 correlation suggests that strengthening math skills will directly boost programming outcomes.<br />
+- <strong>Expected Impact:</strong> Anticipated uplift of 3‑5 points in Data Structures averages for students currently below the math median.  </p>
+<p><strong>Priority 5 – Expand Data Capture for Full Distribution</strong><br />
+- <strong>Description:</strong> Collect and incorporate marks for the <strong>0‑200</strong> and <strong>201‑400</strong> intervals in future reporting cycles.<br />
+- <strong>Rationale:</strong> Complete distributional data are necessary to identify and support at‑risk learners.<br />
+- <strong>Expected Impact:</strong> Early detection of low‑performing students, enabling timely interventions and improving retention.  </p>
+<hr />
+<h2 id="5-conclusion">5. Conclusion</h2>
+<p>The analysis paints a picture of a <strong>generally high‑performing cohort</strong>, driven by strong results in English, Computer Networks, and Data Structures, yet tempered by noticeable <strong>subject‑specific weaknesses</strong> and a <strong>wide achievement spread</strong>. The <strong>exceptionally high maths‑to‑programming correlation</strong> highlights a strategic leverage point for curriculum design. However, <strong>inconsistent semester‑level totals</strong> and <strong>missing lower‑range distribution data</strong> limit the robustness of temporal conclusions. Addressing these data gaps and implementing targeted academic support will enhance both <strong>overall performance</strong> and <strong>equity of outcomes</strong> across the student body.  </p>
+<hr />
+
+          <footer>
+            Confidential • Internal Use Only • © 2026 AnalyticsAI
+          </footer>
+        </div>
+      </body>
+      </html>
+      

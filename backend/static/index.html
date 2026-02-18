@@ -11,21 +11,20 @@
     <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Archivo:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
+        /* ── Design tokens ── */
         :root {
-            --primary: #000000;
-            --secondary: #1a1a1a;
-            --accent: #ffffff;
+            --primary:    #000000;
+            --secondary:  #1a1a1a;
+            --accent:     #ffffff;
             --accent-dim: #e5e5e5;
-            --text: #ffffff;
-            --text-dim: #a0a0a0;
-            --border: #333333;
+            --text:       #ffffff;
+            --text-dim:   #a0a0a0;
+            --border:     #333333;
+            --sb-w:       48px;   /* sidebar collapsed width  */
+            --sb-w-open:  268px;  /* sidebar expanded width   */
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Archivo', sans-serif;
@@ -35,769 +34,1341 @@
             overflow-x: hidden;
         }
 
-        .mono {
-            font-family: 'DM Mono', monospace;
-        }
+        .mono { font-family: 'DM Mono', monospace; }
 
-        /* Animated background grid */
+        /* ── Animated background grid ── */
         .grid-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: 
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image:
                 linear-gradient(var(--border) 1px, transparent 1px),
                 linear-gradient(90deg, var(--border) 1px, transparent 1px);
             background-size: 50px 50px;
             opacity: 0.2;
             animation: gridMove 20s linear infinite;
-            pointer-events: none;
-            z-index: 0;
+            pointer-events: none; z-index: 0;
         }
-
         @keyframes gridMove {
-            0% { transform: translate(0, 0); }
+            0%   { transform: translate(0, 0); }
             100% { transform: translate(50px, 50px); }
         }
 
-        /* Glowing orbs */
+        /* ── Glowing orbs ── */
         .orb {
-            position: fixed;
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.15;
-            pointer-events: none;
-            z-index: 0;
+            position: fixed; border-radius: 50%;
+            filter: blur(80px); opacity: 0.15;
+            pointer-events: none; z-index: 0;
         }
-
         .orb-1 {
-            width: 400px;
-            height: 400px;
-            background: #ffffff;
-            top: -100px;
-            right: -100px;
+            width: 400px; height: 400px; background: #ffffff;
+            top: -100px; right: -100px;
             animation: float 15s ease-in-out infinite;
         }
-
         .orb-2 {
-            width: 300px;
-            height: 300px;
-            background: #ffffff;
-            bottom: -50px;
-            left: -50px;
+            width: 300px; height: 300px; background: #ffffff;
+            bottom: -50px; left: -50px;
             animation: float 12s ease-in-out infinite reverse;
         }
-
         @keyframes float {
             0%, 100% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(30px, -30px) scale(1.1); }
+            50%       { transform: translate(30px, -30px) scale(1.1); }
         }
 
-        /* Container styles */
-        .container {
-            position: relative;
-            z-index: 1;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        /* Upload screen */
-        .upload-zone {
-            background: rgba(26, 26, 26, 0.6);
-            backdrop-filter: blur(10px);
-            border: 2px dashed var(--border);
-            border-radius: 16px;
-            padding: 4rem;
-            text-align: center;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .upload-zone:hover {
-            border-color: var(--accent);
-            background: rgba(26, 26, 26, 0.8);
-            transform: translateY(-2px);
-        }
-
-        .upload-zone.dragover {
-            border-color: var(--accent);
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        /* Chat interface */
-        .chat-single-column {
-            height: calc(100vh - 180px);
-        }
-
-        .chat-main {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            background: rgba(26, 26, 26, 0.4);
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            overflow: hidden;
-        }
-
-        .chat-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid var(--border);
-            background: rgba(10, 10, 10, 0.4);
-        }
-
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 2rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        .message {
-            padding: 1.25rem;
-            border-radius: 12px;
-            max-width: 85%;
-            animation: slideIn 0.3s ease;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .message-user {
-            background: #ffffff;
-            color: #000000;
-            margin-left: auto;
-            font-weight: 500;
-        }
-
-        .message-assistant {
-            background: rgba(45, 45, 45, 0.8);
-            border: 1px solid var(--border);
-        }
-
-        .chat-input-area {
-            padding: 1.5rem;
-            border-top: 1px solid var(--border);
-            background: rgba(10, 10, 10, 0.6);
-        }
-
-        .chat-input {
-            width: 100%;
-            background: rgba(26, 26, 26, 0.8);
-            border: 1px solid var(--border);
-            color: var(--text);
-            padding: 1rem 1.5rem;
-            border-radius: 12px;
-            font-size: 0.95rem;
-            transition: all 0.2s ease;
-        }
-
-        .chat-input:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
-        }
-
-        /* Buttons */
+        /* ── Buttons ── */
         .btn {
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: none;
-            font-size: 0.95rem;
+            padding: 0.75rem 1.5rem; border-radius: 8px;
+            font-weight: 600; cursor: pointer;
+            transition: all 0.2s ease; border: none;
+            font-size: 0.95rem; font-family: 'Archivo', sans-serif;
         }
-
-        .btn-primary {
-            background: #ffffff;
-            color: #000000;
-        }
-
+        .btn-primary  { background: #ffffff; color: #000000; }
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 24px rgba(255,255,255,0.3);
         }
-
         .btn-secondary {
-            background: rgba(45, 45, 45, 0.8);
-            color: var(--text);
+            background: rgba(45,45,45,0.8); color: var(--text);
             border: 1px solid var(--border);
         }
-
         .btn-secondary:hover {
-            background: rgba(45, 45, 45, 1);
-            border-color: var(--accent);
+            background: rgba(45,45,45,1); border-color: var(--accent);
         }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
 
-        /* Code blocks */
-        .code-block {
-            background: rgba(10, 10, 10, 0.8);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1rem;
-            margin-top: 0.5rem;
-            font-size: 0.85rem;
-            overflow-x: auto;
-        }
-
-        /* Summary display */
-        .summary-box {
-            background: linear-gradient(135deg, rgba(45, 45, 45, 0.8) 0%, rgba(26, 26, 26, 0.8) 100%);
-            border: 1px solid var(--accent);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-top: 0.5rem;
-            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
-        }
-
-        .summary-box .text-gray-200 {
-            font-size: 1rem;
-            line-height: 1.7;
-            color: var(--text);
-        }
-
-        /* Chart display */
-        .chart-container {
-            margin-top: 1rem;
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid var(--border);
-        }
-
-        .chart-container img {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-
-        /* Scrollbar styling */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: rgba(45, 45, 45, 0.3);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--border);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #666666;
-        }
-
-        /* Loading indicator */
+        /* ── Loading spinner ── */
         .loading {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
+            display: inline-block; width: 16px; height: 16px;
             border: 2px solid var(--border);
             border-top-color: var(--accent);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .hidden { display: none !important; }
+
+        /* ── Scrollbar ── */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(45,45,45,0.3); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #666; }
+
+        /* ═══════════════════════════════════════════════
+           SIDEBAR
+        ═══════════════════════════════════════════════ */
+        #sidebar {
+            position: fixed;
+            left: 0; top: 0; bottom: 0;
+            z-index: 45;
+            width: var(--sb-w);
+            background: rgba(6,6,6,0.97);
+            border-right: 1px solid var(--border);
+            backdrop-filter: blur(16px);
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
+        #sidebar.open { width: var(--sb-w-open); }
 
-        /* Hide elements */
-        .hidden {
-            display: none !important;
-        }
-
-        /* Header */
-        .header {
-            text-align: center;
-            margin-bottom: 3rem;
-            padding-top: 2rem;
-        }
-
-        .logo {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #ffffff;
-            margin-bottom: 0.5rem;
-        }
-
-        .tagline {
-            color: var(--text-dim);
-            font-size: 1rem;
-        }
-
-        input[type="text"],
-        input[type="file"] {
-            width: 100%;
-            background: rgba(26, 26, 26, 0.8);
+        /* toggle tab — sits at the right edge, centered vertically */
+        .sb-toggle {
+            position: absolute;
+            right: 0; top: 50%;
+            transform: translateY(-50%);
+            width: 20px; height: 48px;
+            background: rgba(30,30,30,0.9);
             border: 1px solid var(--border);
-            color: var(--text);
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
+            border-left: none;
+            border-radius: 0 8px 8px 0;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text-dim);
+            font-size: 0.65rem;
+            transition: color 0.2s, background 0.2s;
+            z-index: 1;
+        }
+        .sb-toggle:hover { color: #fff; background: rgba(50,50,50,1); }
+
+        /* inner content — hidden when collapsed */
+        .sb-inner {
+            display: flex; flex-direction: column;
+            height: 100%;
+            width: var(--sb-w-open);
+            min-width: var(--sb-w-open);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+        }
+        #sidebar.open .sb-inner {
+            opacity: 1;
+            pointer-events: auto;
+            transition-delay: 0.1s;
         }
 
-        input[type="text"]:focus {
-            outline: none;
-            border-color: var(--accent);
+        .sb-header {
+            padding: 1.1rem 1rem 0.75rem;
+            border-bottom: 1px solid var(--border);
+            margin-top: 56px; /* below nav */
+            display: flex; align-items: center; justify-content: space-between;
         }
+        .sb-title {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.68rem; font-weight: 500;
+            letter-spacing: 0.12em; text-transform: uppercase;
+            color: var(--text-dim);
+        }
+        .sb-new-btn {
+            background: none; border: 1px solid var(--border);
+            border-radius: 6px; color: var(--text-dim);
+            font-size: 0.7rem; cursor: pointer;
+            padding: 0.2rem 0.5rem;
+            font-family: 'DM Mono', monospace;
+            transition: all 0.15s;
+        }
+        .sb-new-btn:hover { color: #fff; border-color: #fff; }
+
+        .sb-list {
+            flex: 1; overflow-y: auto;
+            padding: 0.5rem 0;
+        }
+
+        /* Empty / loading states */
+        .sb-empty {
+            padding: 1.5rem 1rem;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.72rem; color: var(--text-dim);
+            text-align: center; line-height: 1.7;
+        }
+
+        /* Single session row */
+        .sb-item {
+            display: flex; align-items: flex-start; gap: 0.6rem;
+            padding: 0.65rem 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            transition: background 0.15s;
+            border-left: 2px solid transparent;
+        }
+        .sb-item:hover { background: rgba(255,255,255,0.04); }
+        .sb-item.active {
+            background: rgba(255,255,255,0.07);
+            border-left-color: #fff;
+        }
+
+        .sb-item-icon {
+            flex-shrink: 0;
+            width: 28px; height: 28px;
+            background: rgba(40,40,40,0.9);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.8rem;
+        }
+        .sb-item-body { flex: 1; min-width: 0; }
+        .sb-item-name {
+            font-size: 0.8rem; font-weight: 500; color: #e0e0e0;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .sb-item-meta {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.66rem; color: var(--text-dim);
+            margin-top: 0.2rem;
+        }
+        .sb-item-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 4px;
+            padding: 0 5px; font-size: 0.6rem;
+            font-family: 'DM Mono', monospace;
+            color: var(--text-dim); line-height: 1.6;
+            vertical-align: middle; margin-right: 4px;
+        }
+
+        /* ── layout shifts when sidebar is visible ── */
+        body.has-sidebar .top-nav {
+            left: var(--sb-w);
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        body.has-sidebar.sb-open .top-nav { left: var(--sb-w-open); }
+
+        body.has-sidebar #landingScreen,
+        body.has-sidebar #homeScreen,
+        body.has-sidebar #uploadScreen,
+        body.has-sidebar #chatScreen {
+            margin-left: var(--sb-w);
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        body.has-sidebar.sb-open #landingScreen,
+        body.has-sidebar.sb-open #homeScreen,
+        body.has-sidebar.sb-open #uploadScreen,
+        body.has-sidebar.sb-open #chatScreen {
+            margin-left: var(--sb-w-open);
+        }
+
+
+        .top-nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 1rem 2rem;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+        }
+        .nav-logo {
+            font-size: 1.3rem; font-weight: 700; color: #fff;
+            letter-spacing: -0.01em;
+        }
+        .nav-actions { display: flex; align-items: center; gap: 0.75rem; }
+        .nav-user {
+            font-size: 0.82rem; color: var(--text-dim);
+            font-family: 'DM Mono', monospace;
+        }
+        .nav-avatar {
+            width: 30px; height: 30px; border-radius: 50%;
+            object-fit: cover; border: 1px solid var(--border);
+        }
+
+      
+        #landingScreen {
+            position: relative; z-index: 1;
+            min-height: 100vh;
+            display: flex; flex-direction: column;
+        }
+        .landing-hero {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            text-align: center;
+            padding: 8rem 2rem 4rem;
+            max-width: 800px; margin: 0 auto;
+        }
+        .hero-badge {
+            display: inline-block;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.72rem; letter-spacing: 0.14em;
+            color: var(--text-dim); text-transform: uppercase;
+            border: 1px solid var(--border); border-radius: 999px;
+            padding: 0.35rem 1.1rem; margin-bottom: 2.5rem;
+            animation: fadeUp 0.6s ease 0.1s both;
+        }
+        .hero-title {
+            font-size: clamp(3rem, 7vw, 5.5rem);
+            font-weight: 700; line-height: 1.05;
+            letter-spacing: -0.03em; color: #fff;
+            margin-bottom: 1.75rem;
+            animation: fadeUp 0.6s ease 0.25s both;
+        }
+        .hero-title em { font-style: normal; color: var(--text-dim); }
+        .hero-sub {
+            font-size: 1.1rem; color: var(--text-dim);
+            line-height: 1.75; max-width: 520px;
+            margin: 0 auto 2.5rem;
+            animation: fadeUp 0.6s ease 0.4s both;
+        }
+        .hero-cta-row {
+            display: flex; gap: 1rem; justify-content: center;
+            flex-wrap: wrap;
+            animation: fadeUp 0.6s ease 0.55s both;
+        }
+        .hero-cta-row .btn { padding: 0.9rem 2.2rem; font-size: 1rem; }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.25rem; padding: 2rem 2rem 5rem;
+            max-width: 1100px; margin: 0 auto;
+            animation: fadeUp 0.6s ease 0.7s both;
+        }
+        .feature-card {
+            background: rgba(20,20,20,0.7);
+            border: 1px solid var(--border); border-radius: 14px;
+            padding: 1.75rem; transition: all 0.25s ease;
+        }
+        .feature-card:hover {
+            border-color: rgba(255,255,255,0.2);
+            transform: translateY(-4px);
+            background: rgba(30,30,30,0.8);
+        }
+        .feature-icon { font-size: 1.8rem; margin-bottom: 0.9rem; }
+        .feature-card h3 { font-size: 0.95rem; font-weight: 600; color: #fff; margin-bottom: 0.5rem; }
+        .feature-card p { font-size: 0.85rem; color: var(--text-dim); line-height: 1.6; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ═══════════════════════════════════════════════
+           HOME PAGE
+        ═══════════════════════════════════════════════ */
+        #homeScreen {
+            position: relative; z-index: 1;
+            min-height: 100vh;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            text-align: center; padding: 6rem 2rem 4rem;
+        }
+        .home-greeting {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.8rem; letter-spacing: 0.1em;
+            color: var(--text-dim); text-transform: uppercase;
+            margin-bottom: 1.5rem;
+            animation: fadeUp 0.5s ease both;
+        }
+        .home-title {
+            font-size: clamp(2.8rem, 6vw, 4.5rem);
+            font-weight: 700; line-height: 1.1;
+            letter-spacing: -0.03em; color: #fff;
+            margin-bottom: 1rem;
+            animation: fadeUp 0.5s ease 0.1s both;
+        }
+        .home-title span {
+            background: linear-gradient(135deg, #fff 30%, #555 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .home-sub {
+            font-size: 1rem; color: var(--text-dim);
+            max-width: 420px; line-height: 1.7; margin-bottom: 3rem;
+            animation: fadeUp 0.5s ease 0.2s both;
+        }
+        .home-start-btn {
+            display: inline-flex; align-items: center; gap: 0.6rem;
+            font-size: 1.1rem; padding: 1rem 2.8rem;
+            border-radius: 12px;
+            box-shadow: 0 0 50px rgba(255,255,255,0.12);
+            transition: all 0.25s ease;
+            animation: fadeUp 0.5s ease 0.3s both;
+        }
+        .home-start-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 16px 48px rgba(255,255,255,0.25);
+        }
+        .home-pills {
+            display: flex; align-items: center; gap: 1.5rem;
+            margin-top: 3.5rem; padding: 1rem 2rem;
+            background: rgba(20,20,20,0.7);
+            border: 1px solid var(--border); border-radius: 14px;
+            animation: fadeUp 0.5s ease 0.4s both;
+        }
+        .home-pill { text-align: center; }
+        .home-pill-label { font-family: 'DM Mono', monospace; font-size: 1rem; font-weight: 500; color: #fff; }
+        .home-pill-sub { font-size: 0.7rem; color: var(--text-dim); letter-spacing: 0.05em; }
+        .home-pill-sep { width: 1px; height: 28px; background: var(--border); }
+
+        /* ═══════════════════════════════════════════════
+           UPLOAD / CHAT
+        ═══════════════════════════════════════════════ */
+        .container {
+            position: relative; z-index: 1;
+            max-width: 1200px; margin: 0 auto; padding: 2rem;
+        }
+        .header { text-align: center; margin-bottom: 3rem; padding-top: 2rem; }
+        .logo { font-size: 2.5rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem; }
+        .tagline { color: var(--text-dim); font-size: 1rem; }
+
+        .upload-zone {
+            background: rgba(26,26,26,0.6); backdrop-filter: blur(10px);
+            border: 2px dashed var(--border); border-radius: 16px;
+            padding: 4rem; text-align: center;
+            transition: all 0.3s ease; cursor: pointer;
+        }
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: var(--accent);
+            background: rgba(26,26,26,0.8); transform: translateY(-2px);
+        }
+
+        .chat-single-column { height: calc(100vh - 180px); }
+        .chat-main {
+            display: flex; flex-direction: column; height: 100%;
+            background: rgba(26,26,26,0.4); backdrop-filter: blur(10px);
+            border-radius: 16px; border: 1px solid var(--border); overflow: hidden;
+        }
+        .chat-header {
+            padding: 1.5rem; border-bottom: 1px solid var(--border);
+            background: rgba(10,10,10,0.4);
+        }
+        .chat-messages {
+            flex: 1; overflow-y: auto; padding: 2rem;
+            display: flex; flex-direction: column; gap: 1.5rem;
+        }
+        .message {
+            padding: 1.25rem; border-radius: 12px;
+            max-width: 85%; animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .message-user { background: #fff; color: #000; margin-left: auto; font-weight: 500; }
+        .message-assistant { background: rgba(45,45,45,0.8); border: 1px solid var(--border); }
+
+        .chat-input-area {
+            padding: 1.5rem; border-top: 1px solid var(--border);
+            background: rgba(10,10,10,0.6);
+        }
+        .chat-input {
+            width: 100%; background: rgba(26,26,26,0.8);
+            border: 1px solid var(--border); color: var(--text);
+            padding: 1rem 1.5rem; border-radius: 12px;
+            font-size: 0.95rem; transition: all 0.2s ease;
+            font-family: 'Archivo', sans-serif;
+        }
+        .chat-input:focus {
+            outline: none; border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(255,255,255,0.1);
+        }
+
+        input[type="text"] {
+            width: 100%; background: rgba(26,26,26,0.8);
+            border: 1px solid var(--border); color: var(--text);
+            padding: 0.75rem 1rem; border-radius: 8px;
+            font-family: 'Archivo', sans-serif;
+        }
+        input[type="text"]:focus { outline: none; border-color: var(--accent); }
+
+        /* ═══════════════════════════════════════════════
+           MODALS
+        ═══════════════════════════════════════════════ */
+        .modal-backdrop {
+            position: fixed; inset: 0; z-index: 200;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center;
+            padding: 1rem;
+            animation: backdropIn 0.15s ease;
+        }
+        @keyframes backdropIn { from { opacity: 0; } to { opacity: 1; } }
+        .modal-box {
+            position: relative;
+            background: #0d0d0d;
+            border: 1px solid #2a2a2a;
+            border-radius: 20px;
+            padding: 2.5rem;
+            width: 100%; max-width: 420px;
+            box-shadow: 0 32px 80px rgba(0,0,0,0.9);
+            animation: modalIn 0.2s ease;
+        }
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.96) translateY(10px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .modal-close {
+            position: absolute; top: 1rem; right: 1.25rem;
+            background: none; border: none; color: var(--text-dim);
+            font-size: 1.1rem; cursor: pointer; padding: 0.3rem 0.5rem;
+            border-radius: 6px; transition: all 0.15s; line-height: 1;
+        }
+        .modal-close:hover { color: #fff; background: rgba(255,255,255,0.08); }
+        .modal-title { font-size: 1.6rem; font-weight: 700; color: #fff; margin-bottom: 0.3rem; }
+        .modal-sub   { font-size: 0.88rem; color: var(--text-dim); margin-bottom: 1.75rem; }
+        .modal-divider {
+            display: flex; align-items: center; gap: 1rem;
+            color: var(--text-dim); font-size: 0.78rem; margin: 1.2rem 0;
+        }
+        .modal-divider::before, .modal-divider::after {
+            content: ''; flex: 1; height: 1px; background: var(--border);
+        }
+        .modal-footer {
+            text-align: center; font-size: 0.85rem;
+            color: var(--text-dim); margin-top: 1.5rem;
+        }
+        .modal-link {
+            background: none; border: none; color: #fff;
+            font-weight: 600; cursor: pointer;
+            text-decoration: underline; text-underline-offset: 3px;
+            font-size: 0.85rem; transition: opacity 0.15s;
+            font-family: 'Archivo', sans-serif;
+        }
+        .modal-link:hover { opacity: 0.7; }
+
+        .auth-form { display: flex; flex-direction: column; gap: 1rem; }
+        .auth-field { display: flex; flex-direction: column; gap: 0.4rem; }
+        .auth-field label {
+            font-size: 0.75rem; font-weight: 600;
+            color: var(--text-dim); letter-spacing: 0.06em; text-transform: uppercase;
+        }
+        .auth-field input {
+            background: rgba(20,20,20,0.9);
+            border: 1px solid var(--border); border-radius: 8px;
+            color: var(--text); padding: 0.75rem 1rem;
+            font-size: 0.95rem; width: 100%;
+            transition: border-color 0.15s, box-shadow 0.15s;
+            font-family: 'Archivo', sans-serif;
+        }
+        .auth-field input:focus {
+            outline: none; border-color: rgba(255,255,255,0.45);
+            box-shadow: 0 0 0 3px rgba(255,255,255,0.06);
+        }
+        .auth-error {
+            font-size: 0.83rem; color: #ff6b6b;
+            background: rgba(255,60,60,0.1);
+            border: 1px solid rgba(255,60,60,0.25);
+            border-radius: 8px; padding: 0.6rem 0.85rem;
+        }
+
+        .google-btn {
+            width: 100%; display: flex; align-items: center;
+            justify-content: center; gap: 0.7rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border); border-radius: 8px;
+            color: var(--text); padding: 0.75rem 1rem;
+            font-size: 0.95rem; font-weight: 500; cursor: pointer;
+            transition: background 0.15s, border-color 0.15s;
+            font-family: 'Archivo', sans-serif;
+        }
+        .google-btn:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.25);
+        }
+
+        .w-full { width: 100%; }
     </style>
 </head>
 <body>
-    <!-- Background effects -->
-    <div class="grid-bg"></div>
-    <div class="orb orb-1"></div>
-    <div class="orb orb-2"></div>
 
+<div class="grid-bg"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+
+<div id="sidebar" class="hidden">
+    <button class="sb-toggle" onclick="toggleSidebar()" title="Toggle history">
+        <span id="sbArrow">›</span>
+    </button>
+
+    <div class="sb-inner">
+        <div class="sb-header">
+            <span class="sb-title">Chat History</span>
+            <button class="sb-new-btn" onclick="showScreen('upload')">+ New</button>
+        </div>
+
+        <div class="sb-list" id="sessionList">
+            <div class="sb-empty">
+                <span class="loading"></span><br>Loading…
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<nav class="top-nav" id="topNav">
+    <span class="nav-logo">AnalyticsAI</span>
+    <div class="nav-actions" id="navActions"></div>
+</nav>
+
+
+
+<div id="landingScreen" class="hidden">
+    <div class="landing-hero">
+        <div class="hero-badge">✦ AI-Powered Data Analysis</div>
+        <h1 class="hero-title">Talk to your data<br><em>like never before</em></h1>
+        <p class="hero-sub">
+            Upload a CSV, connect a database, and ask questions in plain English.
+            Instant answers, auto-generated charts, zero SQL required.
+        </p>
+        <div class="hero-cta-row">
+            <button class="btn btn-primary" onclick="openModal('signup')">Get Started Free</button>
+            <button class="btn btn-secondary" onclick="openModal('login')">Log In</button>
+        </div>
+    </div>
+    <div class="feature-grid">
+        <div class="feature-card">
+            <div class="feature-icon">💬</div>
+            <h3>Natural Language</h3>
+            <p>Ask questions the way you think. No SQL, no code, no friction.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">📊</div>
+            <h3>Instant Charts</h3>
+            <p>Auto-generated Plotly visualisations that respond to your questions.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🔌</div>
+            <h3>Any Data Source</h3>
+            <p>CSV, Excel, PostgreSQL, MySQL — connect whatever you have.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">⚡</div>
+            <h3>Follow-Up Questions</h3>
+            <p>Drill deeper with AI-suggested follow-ups after every answer.</p>
+        </div>
+    </div>
+</div>
+
+
+<div id="homeScreen" class="hidden">
+    <div class="home-greeting" id="homeGreeting">Welcome back</div>
+    <h1 class="home-title">What are we<br><span>analysing today?</span></h1>
+    <p class="home-sub">Upload a file or connect a database and let AI turn your data into answers.</p>
+    <button class="btn btn-primary home-start-btn" onclick="showScreen('upload')">
+        Start Chat
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M5 12h14M13 6l6 6-6 6"/>
+        </svg>
+    </button>
+    <div class="home-pills">
+        <div class="home-pill">
+            <div class="home-pill-label mono">CSV</div>
+            <div class="home-pill-sub">Files</div>
+        </div>
+        <div class="home-pill-sep"></div>
+        <div class="home-pill">
+            <div class="home-pill-label mono">Excel</div>
+            <div class="home-pill-sub">Spreadsheets</div>
+        </div>
+        <div class="home-pill-sep"></div>
+        <div class="home-pill">
+            <div class="home-pill-label mono">SQL</div>
+            <div class="home-pill-sub">Databases</div>
+        </div>
+    </div>
+</div>
+
+
+
+<div id="uploadScreen" class="hidden">
     <div class="container">
-        <!-- Header -->
         <div class="header">
             <div class="logo">AnalyticsAI</div>
             <div class="tagline mono">Natural language data analysis powered by AI</div>
         </div>
-
-        <!-- Upload Screen -->
-        <div id="uploadScreen">
-            <div class="upload-zone" id="uploadZone">
-                <svg class="mx-auto mb-4" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="#ffffff"/>
-                </svg>
-                <h2 class="text-2xl font-semibold mb-3">Upload Your Data Source</h2>
-                <p class="text-gray-400 mb-6">Drop your CSV, Excel, or enter a database connection string</p>
-                
-                <input type="file" id="fileInput" accept=".csv,.xlsx,.xls, .webp, .png" class="hidden">
-                <button onclick="document.getElementById('fileInput').click()" class="btn btn-primary mb-4">
-                    Choose File
-                </button>
-                
-                <div class="my-6 text-gray-500">— OR —</div>
-                
-                <input type="text" id="dbConnection" placeholder="postgresql://user:pass@host:5432/db" class="mb-4">
-                <button onclick="initSession()" class="btn btn-secondary">
-                    Connect to Database
-                </button>
-            </div>
-
-            <div id="uploadStatus" class="hidden mt-4 p-4 rounded-lg text-center"></div>
+        <div class="upload-zone" id="uploadZone">
+            <svg class="mx-auto mb-4" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="#ffffff"/>
+            </svg>
+            <h2 class="text-2xl font-semibold mb-3">Upload Your Data Source</h2>
+            <p class="text-gray-400 mb-6">Drop your CSV, Excel, or enter a database connection string</p>
+            <input type="file" id="fileInput" accept=".csv,.xlsx,.xls,.webp,.png" class="hidden">
+            <button onclick="document.getElementById('fileInput').click()" class="btn btn-primary mb-4">Choose File</button>
+            <div class="my-6 text-gray-500">— OR —</div>
+            <input type="text" id="dbConnection" placeholder="postgresql://user:pass@host:5432/db" class="mb-4">
+            <button onclick="initSession()" class="btn btn-secondary">Connect to Database</button>
         </div>
+        <div id="uploadStatus" class="hidden mt-4 p-4 rounded-lg text-center"></div>
+    </div>
+</div>
 
-        <!-- Chat Screen -->
-        <div id="chatScreen" class="hidden">
-            <div class="chat-single-column">
-                <div class="chat-main">
-                    <div class="chat-header">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <div class="text-sm text-gray-400">Source:</div>
-                                <div class="text-sm mono break-all" id="sourceInfo">-</div>
-                            </div>
-                            <button onclick="resetSession()" class="btn btn-secondary text-sm">
-                                New Session
-                            </button>
-                        </div>
-                    </div>
 
-                    <div class="chat-messages" id="chatMessages">
-                        <div class="text-center text-gray-400 py-8">
-                            <p class="text-lg">👋 Ready to analyze your data</p>
-                            <p class="text-sm mt-2">Ask me anything about your data using natural language</p>
+<div id="chatScreen" class="hidden">
+    <div class="container">
+        <div class="chat-single-column">
+            <div class="chat-main">
+                <div class="chat-header">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <div class="text-sm text-gray-400">Source:</div>
+                            <div class="text-sm mono break-all" id="sourceInfo">-</div>
                         </div>
+                        <button onclick="resetSession()" class="btn btn-secondary text-sm">New Session</button>
                     </div>
-                    
-                    <div class="chat-input-area">
-                        <form onsubmit="sendMessage(event)" class="flex gap-3">
-                            <input 
-                                type="text" 
-                                id="queryInput" 
-                                class="chat-input flex-1" 
-                                placeholder="Ask a question about your data..."
-                                autocomplete="off"
-                            >
-                            <button type="submit" class="btn btn-primary px-6">
-                                Send
-                            </button>
-                        </form>
+                </div>
+                <div class="chat-messages" id="chatMessages">
+                    <div class="text-center text-gray-400 py-8">
+                        <p class="text-lg">👋 Ready to analyse your data</p>
+                        <p class="text-sm mt-2">Ask me anything about your data using natural language</p>
                     </div>
+                </div>
+                <div class="chat-input-area">
+                    <form onsubmit="sendMessage(event)" class="flex gap-3">
+                        <input type="text" id="queryInput" class="chat-input flex-1"
+                            placeholder="Ask a question about your data..."
+                            autocomplete="off">
+                        <button type="submit" class="btn btn-primary px-6">Send</button>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        let sessionId = null;
 
-        // File upload handler
-        document.getElementById('fileInput').addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
 
-            const formData = new FormData();
-            formData.append('file', file);
+<div id="loginModal" class="modal-backdrop hidden">
+    <div class="modal-box">
+        <button class="modal-close" onclick="closeModal('login')">✕</button>
+        <h2 class="modal-title">Welcome back</h2>
+        <p class="modal-sub">Sign in to your AnalyticsAI account</p>
+        <button class="google-btn" onclick="googleAuth()">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615Z" fill="#4285F4"/>
+                <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18Z" fill="#34A853"/>
+                <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332Z" fill="#FBBC05"/>
+                <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58Z" fill="#EA4335"/>
+            </svg>
+            Sign in with Google
+        </button>
+        <div class="modal-divider"><span>or continue with email</span></div>
+        <form class="auth-form" onsubmit="submitLogin(event)">
+            <div class="auth-field">
+                <label>Email</label>
+                <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email">
+            </div>
+            <div class="auth-field">
+                <label>Password</label>
+                <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+            </div>
+            <div id="loginError" class="auth-error hidden"></div>
+            <button type="submit" class="btn btn-primary w-full" id="loginBtn">Sign In</button>
+        </form>
+        <p class="modal-footer">
+            Don't have an account?
+            <button class="modal-link" onclick="switchModal('login','signup')">Sign up</button>
+        </p>
+    </div>
+</div>
 
-            const statusEl = document.getElementById('uploadStatus');
-            statusEl.className = 'mt-4 p-4 rounded-lg text-center';
-            statusEl.innerHTML = '<div class="loading mx-auto mb-2"></div><div>Uploading...</div>';
-            statusEl.classList.remove('hidden');
 
-            try {
-                const response = await fetch('/api/upload', {
-                    method: 'POST',
-                    body: formData
-                });
 
-                const data = await response.json();
+<div id="signupModal" class="modal-backdrop hidden">
+    <div class="modal-box">
+        <button class="modal-close" onclick="closeModal('signup')">✕</button>
+        <h2 class="modal-title">Create account</h2>
+        <p class="modal-sub">Start analysing your data with AI</p>
+        <button class="google-btn" onclick="googleAuth()">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615Z" fill="#4285F4"/>
+                <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18Z" fill="#34A853"/>
+                <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332Z" fill="#FBBC05"/>
+                <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58Z" fill="#EA4335"/>
+            </svg>
+            Sign up with Google
+        </button>
+        <div class="modal-divider"><span>or sign up with email</span></div>
+        <form class="auth-form" onsubmit="submitSignup(event)">
+            <div class="auth-field">
+                <label>Full Name</label>
+                <input type="text" id="signupName" placeholder="Jane Smith" autocomplete="name">
+            </div>
+            <div class="auth-field">
+                <label>Email</label>
+                <input type="email" id="signupEmail" placeholder="you@example.com" autocomplete="email">
+            </div>
+            <div class="auth-field">
+                <label>Password</label>
+                <input type="password" id="signupPassword" placeholder="Min 8 characters" autocomplete="new-password">
+            </div>
+            <div class="auth-field">
+                <label>Confirm Password</label>
+                <input type="password" id="signupConfirm" placeholder="••••••••" autocomplete="new-password">
+            </div>
+            <div id="signupError" class="auth-error hidden"></div>
+            <button type="submit" class="btn btn-primary w-full" id="signupBtn">Create Account</button>
+        </form>
+        <p class="modal-footer">
+            Already have an account?
+            <button class="modal-link" onclick="switchModal('signup','login')">Sign in</button>
+        </p>
+    </div>
+</div>
 
-                if (data.status === 'success') {
-                    sessionId = data.session_id;
-                    statusEl.style.background = 'rgba(255, 255, 255, 0.1)';
-                    statusEl.style.borderColor = '#ffffff';
-                    statusEl.innerHTML = '✓ File uploaded successfully!';
-                    
-                    setTimeout(() => {
-                        showChat(data.filename);
-                    }, 1000);
-                } else {
-                    throw new Error(data.message || 'Upload failed');
-                }
-            } catch (error) {
-                statusEl.style.background = 'rgba(255, 68, 68, 0.2)';
-                statusEl.style.borderColor = '#ff4444';
-                statusEl.innerHTML = '✗ ' + error.message;
-            }
+
+<script>
+const AUTH_BASE = 'http://localhost:8001';
+const TOKEN_KEY = 'analyticsai_token';
+const USER_KEY  = 'analyticsai_user';
+
+
+let authToken = localStorage.getItem(TOKEN_KEY) || null;
+let authUser  = JSON.parse(localStorage.getItem(USER_KEY) || 'null');
+let sessionId = null;
+let activeSbSession = null;   
+
+function saveAuth(token, user) {
+    authToken = token; authUser = user;
+    localStorage.setItem(TOKEN_KEY, token);
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+}
+function clearAuth() {
+    authToken = null; authUser = null;
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+}
+
+function authHeaders(extra = {}) {
+    return { 'Authorization': `Bearer ${authToken}`, ...extra };
+}
+
+
+const SCREENS = ['landingScreen','homeScreen','uploadScreen','chatScreen'];
+function showScreen(name) {
+    SCREENS.forEach(id => document.getElementById(id).classList.add('hidden'));
+    const map = { landing:'landingScreen', home:'homeScreen', upload:'uploadScreen', chat:'chatScreen' };
+    const el = document.getElementById(map[name] || name);
+    if (el) el.classList.remove('hidden');
+    renderNav();
+    window.scrollTo(0, 0);
+}
+
+
+function renderNav() {
+    const el = document.getElementById('navActions');
+    console.log("PIC VALUE:", authUser.pic);
+    if (authUser) {
+        const name   = authUser.name.split(' ')[0];
+        const avatar = authUser.pic
+            ? `<img src="${authUser.pic}" class="nav-avatar" alt="${name}">`
+            : `<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTr3jhpAFYpzxx39DRuXIYxNPXc0zI5F6IiMQ&s" class="nav-avatar" alt="${name}">`;
+        el.innerHTML = `
+            ${avatar}
+            <span class="nav-user">${authUser.name}</span>
+            <button class="btn btn-secondary" style="padding:0.5rem 1rem;font-size:0.85rem" onclick="logout()">Log Out</button>
+        `;
+    } else {
+        el.innerHTML = `
+            <button class="btn btn-secondary" style="padding:0.5rem 1rem;font-size:0.85rem" onclick="openModal('login')">Log In</button>
+            <button class="btn btn-primary"   style="padding:0.5rem 1rem;font-size:0.85rem" onclick="openModal('signup')">Sign Up</button>
+        `;
+    }
+}
+
+
+function openModal(name)       { document.getElementById(name+'Modal').classList.remove('hidden'); clearFormErrors(); }
+function closeModal(name)      { document.getElementById(name+'Modal').classList.add('hidden');    clearFormErrors(); }
+function switchModal(from, to) { closeModal(from); openModal(to); }
+function clearFormErrors() {
+    ['loginError','signupError'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.textContent = ''; el.classList.add('hidden'); }
+    });
+}
+['loginModal','signupModal'].forEach(id => {
+    document.getElementById(id).addEventListener('click', function(e) {
+        if (e.target === this) closeModal(id.replace('Modal',''));
+    });
+});
+function showFormError(id, msg) {
+    const el = document.getElementById(id);
+    el.textContent = msg; el.classList.remove('hidden');
+}
+function setLoading(btnId, loading, defaultText) {
+    const btn = document.getElementById(btnId);
+    btn.disabled = loading;
+    btn.innerHTML = loading ? '<span class="loading" style="width:16px;height:16px"></span>' : defaultText;
+}
+
+
+let sidebarOpen = false;
+
+function showSidebar() {
+    document.getElementById('sidebar').classList.remove('hidden');
+    document.body.classList.add('has-sidebar');
+}
+function hideSidebar() {
+    document.getElementById('sidebar').classList.add('hidden');
+    document.body.classList.remove('has-sidebar', 'sb-open');
+    sidebarOpen = false;
+}
+function toggleSidebar() {
+    sidebarOpen = !sidebarOpen;
+    document.getElementById('sidebar').classList.toggle('open', sidebarOpen);
+    document.body.classList.toggle('sb-open', sidebarOpen);
+    document.getElementById('sbArrow').textContent = sidebarOpen ? '‹' : '›';
+}
+
+/* ─── File-type → emoji icon ── */
+function fileIcon(fileType) {
+    const map = { csv:'📄', xlsx:'📊', xls:'📊', pdf:'📑', png:'🖼️', webp:'🖼️', postgresql:'🐘', mysql:'🐬' };
+    return map[(fileType || '').toLowerCase()] || '📂';
+}
+
+/* ─── Friendly display name for a session ── */
+function sessionLabel(item) {
+    if (!item.uploaded_file) return 'Unnamed session';
+    // strip path, show just the filename
+    return item.uploaded_file.split('/').pop().split('\\').pop();
+}
+
+/* ─── Format ISO timestamp → "3 days ago" / date ── */
+function timeAgo(isoStr) {
+    if (!isoStr) return '';
+    const diff = Date.now() - new Date(isoStr).getTime();
+    const mins  = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days  = Math.floor(diff / 86400000);
+    if (mins  < 1)   return 'just now';
+    if (mins  < 60)  return `${mins}m ago`;
+    if (hours < 24)  return `${hours}h ago`;
+    if (days  < 30)  return `${days}d ago`;
+    return new Date(isoStr).toLocaleDateString();
+}
+
+/* ─── Load all sessions from the analytics API ── */
+async function loadSessions() {
+    const list = document.getElementById('sessionList');
+    list.innerHTML = '<div class="sb-empty"><span class="loading"></span><br>Loading…</div>';
+    try {
+        const res  = await fetch('/api/sessions', { headers: authHeaders() });
+        if (!res.ok) throw new Error('Failed to load sessions');
+        const data = await res.json();   // expects { sessions: [...] }
+        renderSessionList(data.sessions || []);
+    } catch (err) {
+        list.innerHTML = `<div class="sb-empty" style="color:#ff6b6b">Could not load history</div>`;
+    }
+}
+
+function renderSessionList(sessions) {
+    const list = document.getElementById('sessionList');
+    if (!sessions.length) {
+        list.innerHTML = '<div class="sb-empty">No chats yet.<br>Start one above ↑</div>';
+        return;
+    }
+    list.innerHTML = sessions.map(s => `
+        <div class="sb-item ${s.session_id === activeSbSession ? 'active' : ''}"
+             id="sb-${s.session_id}"
+             onclick="loadSessionIntoChat('${s.session_id}', '${escapeHtml(sessionLabel(s))}')">
+            <div class="sb-item-icon">${fileIcon(s.file_type)}</div>
+            <div class="sb-item-body">
+                <div class="sb-item-name">${escapeHtml(sessionLabel(s))}</div>
+                <div class="sb-item-meta">
+                    <span class="sb-item-badge">${(s.file_type || 'file').toUpperCase()}</span>
+                    ${timeAgo(s.created_at)}
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function loadSessionIntoChat(id, label) {
+    document.querySelectorAll('.sb-item').forEach(el => el.classList.remove('active'));
+    const item = document.getElementById('sb-' + id);
+    if (item) item.classList.add('active');
+    activeSbSession = id;
+    sessionId = id;
+
+    document.getElementById('sourceInfo').textContent = label;
+    showScreen('chat');
+
+    const msgs = document.getElementById('chatMessages');
+    msgs.innerHTML = '<div class="text-center text-gray-400 py-8"><span class="loading"></span><p class="mt-3 text-sm">Loading conversation…</p></div>';
+
+    try {
+        const res  = await fetch(`/api/sessions/${id}/history`, { headers: authHeaders() });
+        if (!res.ok) throw new Error('Failed to load history');
+        const data = await res.json();   // expects { history: [{query, answer}, ...] }
+        const history = data.history || [];
+
+        if (!history.length) {
+            msgs.innerHTML = `
+                <div class="text-center text-gray-400 py-8">
+                    <p class="text-lg">📂 ${escapeHtml(label)}</p>
+                    <p class="text-sm mt-2">No messages yet — ask your first question below.</p>
+                </div>`;
+            return;
+        }
+
+        msgs.innerHTML = '';
+        history.forEach(({ query, answer }) => {
+            if (query)  addMessage(escapeHtml(query), 'user');
+            if (answer) addMessage(answer, 'assistant');   // answers may contain HTML
         });
+    } catch (err) {
+        msgs.innerHTML = `<div class="text-center text-gray-400 py-8" style="color:#ff6b6b">Could not load conversation.</div>`;
+    }
+}
 
-        // Database connection handler
-        async function initSession() {
-            const dbConnection = document.getElementById('dbConnection').value.trim();
-            if (!dbConnection) {
-                alert('Please enter a database connection string');
+
+async function submitLogin(e) {
+    e.preventDefault();
+    const email    = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    if (!email || !password) { showFormError('loginError','Please fill in all fields.'); return; }
+    setLoading('loginBtn', true, 'Sign In');
+    try {
+        const res  = await fetch(`${AUTH_BASE}/api/auth/login`, {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ email, password }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Login failed');
+        saveAuth(data.access_token, data.user);
+        closeModal('login');
+        onLoginSuccess();
+    } catch (err) {
+        showFormError('loginError', err.message);
+    } finally {
+        setLoading('loginBtn', false, 'Sign In');
+    }
+}
+
+
+async function submitSignup(e) {
+    e.preventDefault();
+    const name     = document.getElementById('signupName').value.trim();
+    const email    = document.getElementById('signupEmail').value.trim();
+    const password = document.getElementById('signupPassword').value;
+    const confirm  = document.getElementById('signupConfirm').value;
+    if (!name || !email || !password || !confirm) { showFormError('signupError','Please fill in all fields.'); return; }
+    if (password !== confirm) { showFormError('signupError','Passwords do not match.'); return; }
+    if (password.length < 8) { showFormError('signupError','Password must be at least 8 characters.'); return; }
+    setLoading('signupBtn', true, 'Create Account');
+    try {
+        const res  = await fetch(`${AUTH_BASE}/api/auth/signup`, {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ name, email, password }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Signup failed');
+        saveAuth(data.access_token, data.user);
+        closeModal('signup');
+        onLoginSuccess();
+    } catch (err) {
+        showFormError('signupError', err.message);
+    } finally {
+        setLoading('signupBtn', false, 'Create Account');
+    }
+}
+
+
+function googleAuth() {
+    window.location.href = `${AUTH_BASE}/api/auth/google`;
+}
+
+
+function onLoginSuccess() {
+    const name = (authUser.name || '').split(' ')[0] || 'there';
+    document.getElementById('homeGreeting').textContent = `Good to see you, ${name} 👋`;
+    showSidebar();
+    loadSessions();
+    showScreen('home');
+}
+
+function logout() {
+    clearAuth();
+    sessionId = null;
+    activeSbSession = null;
+    hideSidebar();
+    showScreen('landing');
+}
+
+
+(async function init() {
+    const params = new URLSearchParams(window.location.search);
+    const callbackToken = params.get('token');
+    const callbackUser  = params.get('user');
+    if (callbackToken && callbackUser) {
+        try { saveAuth(callbackToken, JSON.parse(atob(callbackUser))); } catch (_) {}
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    if (authToken) {
+        try {
+            const res = await fetch(`${AUTH_BASE}/api/auth/me`, {
+                headers: authHeaders()
+            });
+            if (res.ok) {
+                saveAuth(authToken, await res.json());
+                onLoginSuccess();
                 return;
             }
+        } catch (_) {}
+        clearAuth();
+    }
 
-            const statusEl = document.getElementById('uploadStatus');
-            statusEl.className = 'mt-4 p-4 rounded-lg text-center';
-            statusEl.innerHTML = '<div class="loading mx-auto mb-2"></div><div>Connecting...</div>';
-            statusEl.classList.remove('hidden');
+    showScreen('landing');
+})();
 
-            try {
-                const response = await fetch('/api/init-session', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ file_path: dbConnection })
-                });
 
-                const data = await response.json();
+document.getElementById('fileInput').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-                if (data.status === 'success') {
-                    sessionId = data.session_id;
-                    statusEl.style.background = 'rgba(255, 255, 255, 0.1)';
-                    statusEl.style.borderColor = '#ffffff';
-                    statusEl.innerHTML = '✓ Connected successfully!';
-                    
-                    setTimeout(() => {
-                        showChat(dbConnection);
-                    }, 1000);
-                } else {
-                    throw new Error(data.message || 'Connection failed');
-                }
-            } catch (error) {
-                statusEl.style.background = 'rgba(255, 68, 68, 0.2)';
-                statusEl.style.borderColor = '#ff4444';
-                statusEl.innerHTML = '✗ ' + error.message;
-            }
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const statusEl = document.getElementById('uploadStatus');
+    statusEl.className = 'mt-4 p-4 rounded-lg text-center';
+    statusEl.innerHTML = '<div class="loading mx-auto mb-2"></div><div>Uploading...</div>';
+    statusEl.classList.remove('hidden');
+
+    try {
+        const response = await fetch('/api/upload', {
+            method: 'POST', body: formData,
+            headers: authHeaders(),          // ← pass auth token
+        });
+        const data = await response.json();
+        if (data.status === 'success') {
+            sessionId = data.session_id;
+            statusEl.style.background = 'rgba(255,255,255,0.1)';
+            statusEl.style.borderColor = '#ffffff';
+            statusEl.innerHTML = '✓ File uploaded successfully!';
+            loadSessions();   // refresh sidebar
+            setTimeout(() => showChat(data.filename), 1000);
+        } else {
+            throw new Error(data.message || 'Upload failed');
         }
+    } catch (error) {
+        statusEl.style.background = 'rgba(255,68,68,0.2)';
+        statusEl.style.borderColor = '#ff4444';
+        statusEl.innerHTML = '✗ ' + error.message;
+    }
+});
 
-        // Show chat interface
-        function showChat(sourceName) {
-            document.getElementById('uploadScreen').classList.add('hidden');
-            document.getElementById('chatScreen').classList.remove('hidden');
-            document.getElementById('sourceInfo').textContent = sourceName;
+
+async function initSession() {
+    const dbConnection = document.getElementById('dbConnection').value.trim();
+    if (!dbConnection) { alert('Please enter a database connection string'); return; }
+
+    const statusEl = document.getElementById('uploadStatus');
+    statusEl.className = 'mt-4 p-4 rounded-lg text-center';
+    statusEl.innerHTML = '<div class="loading mx-auto mb-2"></div><div>Connecting...</div>';
+    statusEl.classList.remove('hidden');
+
+    try {
+        const response = await fetch('/api/init-session', {
+            method: 'POST',
+            headers: authHeaders({'Content-Type':'application/json'}),
+            body: JSON.stringify({ file_path: dbConnection }),
+        });
+        const data = await response.json();
+        if (data.status === 'success') {
+            sessionId = data.session_id;
+            statusEl.style.background = 'rgba(255,255,255,0.1)';
+            statusEl.style.borderColor = '#ffffff';
+            statusEl.innerHTML = '✓ Connected successfully!';
+            loadSessions();   // refresh sidebar
+            setTimeout(() => showChat(dbConnection), 1000);
+        } else {
+            throw new Error(data.message || 'Connection failed');
         }
+    } catch (error) {
+        statusEl.style.background = 'rgba(255,68,68,0.2)';
+        statusEl.style.borderColor = '#ff4444';
+        statusEl.innerHTML = '✗ ' + error.message;
+    }
+}
 
-        function toggleChart(chartId, btn) {
-            const chart = document.getElementById(chartId);
-            const label = btn.querySelector("span");
-            const arrow = btn.querySelectorAll("span")[1];
-
-            if (chart.classList.contains("hidden")) {
-                chart.classList.remove("hidden");
-                label.textContent = "Hide chart";
-                arrow.textContent = "▲";
-            } else {
-                chart.classList.add("hidden");
-                label.textContent = "Show chart";
-                arrow.textContent = "▼";
-            }
-        }
-
-
-        function resetSession() {
-            sessionId = null;
-            document.getElementById('chatScreen').classList.add('hidden');
-            document.getElementById('uploadScreen').classList.remove('hidden');
-            document.getElementById('chatMessages').innerHTML = `
-                <div class="text-center text-gray-400 py-8">
-                    <p class="text-lg">👋 Ready to analyze your data</p>
-                    <p class="text-sm mt-2">Ask me anything about your data using natural language</p>
-                </div>
-            `;
-        }
-
-        function filterTable(tableId, inputId) {
-            const value = document.getElementById(inputId).value.toLowerCase();
-            const rows = document.querySelectorAll(`#${tableId} tbody tr`);
-
-            rows.forEach(row => {
-                row.style.display = row.innerText.toLowerCase().includes(value)
-                ? ""
-                : "none";
-            });
-        }
-
-        function setInputValue(text) {
-            const input = document.getElementById("queryInput");
-            if (!input) return;
-
-            input.value = text;
-            input.focus();
-
-            // Optional: move cursor to end
-            input.setSelectionRange(input.value.length, input.value.length);
-        }
-
-
-
-        // Send message
-        async function sendMessage(e) {
-            e.preventDefault();
-            
-            const input = document.getElementById('queryInput');
-            const query = input.value.trim();
-            
-            if (!query || !sessionId) return;
-            
-            input.value = '';
-            addMessage(query, 'user');
-            
-            const loadingId = 'loading-' + Date.now();
-            addMessage('<div class="loading"></div> Processing your query...', 'assistant', loadingId);
-            
-            try {
-                const response = await fetch('/api/query', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        session_id: sessionId,
-                        query: query
-                    })
-                });
-
-                const data = await response.json();
-                
-                // Remove loading message
-                document.getElementById(loadingId)?.remove();
-                console.log(data)
-                
-                if (data.status === 'success') {
-                    let resultHtml = '';
-                    
-                    // Show summary
-                    if (data.summary) {
-                    const { text, table } = data.summary;
-
-                    const hasTable =
-                        table &&
-                        Array.isArray(table.columns) &&
-                        table.columns.length > 0 &&
-                        Array.isArray(table.rows) &&
-                        table.rows.length > 0;
-
-                    const hasText = text && text.trim().length > 0;
-
-                    // ---------- TABLE FIRST ----------
-                    if (hasTable) {
-                        const tableId = `table_${Date.now()}`;
-                        const filterId = `filter_${Date.now()}`;
-
-                        resultHtml += `
-                        <div class="mt-4 space-y-4">
-
-                            <!-- Filter -->
-                            <input
-                            id="${filterId}"
-                            type="text"
-                            placeholder="Filter rows..."
-                            onkeyup="filterTable('${tableId}', '${filterId}')"
-                            class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md
-                                    text-gray-200 placeholder-gray-400 focus:outline-none"
-                            />
-
-                            <!-- Table -->
-                            <div class="overflow-x-auto">
-                            <table id="${tableId}" class="min-w-full border border-gray-700 rounded-lg">
-                                <thead class="bg-gray-800">
-                                <tr>
-                                    ${table.columns.map(col => `
-                                    <th class="px-4 py-2 text-left border-b border-gray-700 text-gray-300">
-                                        ${col.replace(/_/g, " ").toUpperCase()}
-                                    </th>
-                                    `).join("")}
-                                </tr>
-                                </thead>
-                                <tbody>
-                                ${table.rows.map(row => `
-                                    <tr class="hover:bg-gray-900">
-                                    ${row.map(cell => `
-                                        <td class="px-4 py-2 border-b border-gray-800 text-gray-200">
-                                        ${cell}
-                                        </td>
-                                    `).join("")}
-                                    </tr>
-                                `).join("")}
-                                </tbody>
-                            </table>
-                            </div>
-                        </div>
-                        `;
-                    }
-
-                    // ---------- TEXT BELOW ----------
-                    if (hasText) {
-                        resultHtml += `
-                        <div class="bg-gray-900 p-4 rounded-lg mt-3">
-                            <p class="text-gray-300 leading-relaxed">
-                            ${text}
-                            </p>
-                        </div>
-                        `;
-                    }
-                    }
-
-                    // Show chart if available
-                 if (data.chart_url) {
-    const chartId = `chart_${Date.now()}`;
-    const plotSpec = JSON.parse(data.chart_url);
-
-    resultHtml += `
-        <div class="mt-4 border border-gray-700 rounded-lg overflow-hidden">
-            <button
-                onclick="toggleChart('${chartId}', this)"
-                class="w-full flex justify-between items-center px-4 py-2
-                       bg-gray-800 text-gray-200 hover:bg-gray-700 transition"
-            >
-                <span> Show chart</span>
-                <span class="text-sm opacity-70">▼</span>
-            </button>
-
-            <div id="${chartId}" class="hidden bg-gray-900 p-3">
-                <div id="${chartId}_plot" class="w-full h-[450px]"></div>
-            </div>
-        </div>
-    `;
-
-    setTimeout(() => {
-        Plotly.newPlot(
-            `${chartId}_plot`,
-            plotSpec.data,
-            plotSpec.layout,
-            { responsive: true }
-        );
-    }, 0);
+function showChat(sourceName) {
+    document.getElementById('sourceInfo').textContent = sourceName;
+    activeSbSession = sessionId;
+    document.querySelectorAll('.sb-item').forEach(el => el.classList.remove('active'));
+    showScreen('chat');
 }
 
 
+function toggleChart(chartId, btn) {
+    const chart = document.getElementById(chartId);
+    const spans = btn.querySelectorAll('span');
+    if (chart.classList.contains('hidden')) {
+        chart.classList.remove('hidden');
+        spans[0].textContent = 'Hide chart'; spans[1].textContent = '▲';
+    } else {
+        chart.classList.add('hidden');
+        spans[0].textContent = 'Show chart'; spans[1].textContent = '▼';
+    }
+}
 
-                    // ---------- FOLLOW-UP QUESTIONS ----------
-                    if (data.summary?.followups && data.summary.followups.length > 0) {
-    resultHtml += `
-        <div class="mt-4">
-            <p class="text-gray-400 mb-2 text-sm">You can also ask:</p>
-            <div class="flex flex-wrap gap-2">
-                ${data.summary.followups.map(q => `
-                    <button
-                        onclick="setInputValue('${q.replace(/'/g, "\\'")}')"
-                        class="px-3 py-1.5 rounded-full bg-gray-800 border border-gray-700
-                               text-gray-200 text-sm hover:bg-gray-700 transition"
-                    >
-                        ${q}
+function resetSession() {
+    sessionId = null; activeSbSession = null;
+    document.querySelectorAll('.sb-item').forEach(el => el.classList.remove('active'));
+    document.getElementById('chatMessages').innerHTML = `
+        <div class="text-center text-gray-400 py-8">
+            <p class="text-lg">👋 Ready to analyse your data</p>
+            <p class="text-sm mt-2">Ask me anything about your data using natural language</p>
+        </div>`;
+    showScreen('home');
+}
+
+function filterTable(tableId, inputId) {
+    const value = document.getElementById(inputId).value.toLowerCase();
+    document.querySelectorAll(`#${tableId} tbody tr`).forEach(row => {
+        row.style.display = row.innerText.toLowerCase().includes(value) ? '' : 'none';
+    });
+}
+
+function setInputValue(text) {
+    const input = document.getElementById('queryInput');
+    if (!input) return;
+    input.value = text; input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
+}
+
+async function sendMessage(e) {
+    e.preventDefault();
+    const input = document.getElementById('queryInput');
+    const query = input.value.trim();
+    if (!query || !sessionId) return;
+
+    input.value = '';
+    addMessage(query, 'user');
+
+    const loadingId = 'loading-' + Date.now();
+    addMessage('<div class="loading"></div> Processing your query...', 'assistant', loadingId);
+
+    try {
+        const response = await fetch('/api/query', {
+            method: 'POST',
+            headers: authHeaders({'Content-Type':'application/json'}),
+            body: JSON.stringify({ session_id: sessionId, query }),
+        });
+        const data = await response.json();
+        document.getElementById(loadingId)?.remove();
+
+        if (data.status === 'success') {
+            let resultHtml = '';
+
+            if (data.summary) {
+                const { text, table } = data.summary;
+                const hasTable = table && Array.isArray(table.columns) && table.columns.length > 0
+                              && Array.isArray(table.rows) && table.rows.length > 0;
+                const hasText  = text && text.trim().length > 0;
+
+                if (hasTable) {
+                    const tableId  = `table_${Date.now()}`;
+                    const filterId = `filter_${Date.now()}`;
+                    resultHtml += `
+                    <div class="mt-4 space-y-4">
+                        <input id="${filterId}" type="text" placeholder="Filter rows..."
+                            onkeyup="filterTable('${tableId}','${filterId}')"
+                            class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-gray-200 placeholder-gray-400 focus:outline-none"/>
+                        <div class="overflow-x-auto">
+                        <table id="${tableId}" class="min-w-full border border-gray-700 rounded-lg">
+                            <thead class="bg-gray-800"><tr>
+                                ${table.columns.map(col => `<th class="px-4 py-2 text-left border-b border-gray-700 text-gray-300">${col.replace(/_/g,' ').toUpperCase()}</th>`).join('')}
+                            </tr></thead>
+                            <tbody>
+                                ${table.rows.map(row => `<tr class="hover:bg-gray-900">${row.map(cell => `<td class="px-4 py-2 border-b border-gray-800 text-gray-200">${cell}</td>`).join('')}</tr>`).join('')}
+                            </tbody>
+                        </table>
+                        </div>
+                    </div>`;
+                }
+                if (hasText) {
+                    resultHtml += `<div class="bg-gray-900 p-4 rounded-lg mt-3"><p class="text-gray-300 leading-relaxed">${text}</p></div>`;
+                }
+            }
+
+            if (data.chart_url) {
+                const chartId  = `chart_${Date.now()}`;
+                const plotSpec = JSON.parse(data.chart_url);
+                resultHtml += `
+                <div class="mt-4 border border-gray-700 rounded-lg overflow-hidden">
+                    <button onclick="toggleChart('${chartId}',this)"
+                        class="w-full flex justify-between items-center px-4 py-2 bg-gray-800 text-gray-200 hover:bg-gray-700 transition">
+                        <span>Show chart</span><span class="text-sm opacity-70">▼</span>
                     </button>
-                `).join("")}
-            </div>
-        </div>
-    `;
+                    <div id="${chartId}" class="hidden bg-gray-900 p-3">
+                        <div id="${chartId}_plot" class="w-full h-[450px]"></div>
+                    </div>
+                </div>`;
+                setTimeout(() => Plotly.newPlot(`${chartId}_plot`, plotSpec.data, plotSpec.layout, { responsive: true }), 0);
+            }
+
+            if (data.summary?.followups?.length > 0) {
+                resultHtml += `
+                <div class="mt-4">
+                    <p class="text-gray-400 mb-2 text-sm">You can also ask:</p>
+                    <div class="flex flex-wrap gap-2">
+                        ${data.summary.followups.map(q => `
+                            <button onclick="setInputValue('${q.replace(/'/g,"\\'")}')"
+                                class="px-3 py-1.5 rounded-full bg-gray-800 border border-gray-700 text-gray-200 text-sm hover:bg-gray-700 transition">
+                                ${q}
+                            </button>`).join('')}
+                    </div>
+                </div>`;
+            }
+
+            if (!resultHtml) resultHtml = '<div class="text-gray-400">No results to display</div>';
+            addMessage(resultHtml, 'assistant');
+        } else {
+            addMessage('❌ Error: ' + escapeHtml(data.message || 'Unknown error'), 'assistant');
+        }
+    } catch (error) {
+        document.getElementById(loadingId)?.remove();
+        addMessage('❌ Error: ' + escapeHtml(error.message), 'assistant');
+    }
 }
 
+function addMessage(content, type, id = null) {
+    const messagesDiv = document.getElementById('chatMessages');
+    const messageDiv  = document.createElement('div');
+    messageDiv.className = `message message-${type}`;
+    if (id) messageDiv.id = id;
+    messageDiv.innerHTML = content;
+    messagesDiv.appendChild(messageDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
 
-                    
-                    // If nothing to show
-                    if (!resultHtml) {
-                        resultHtml = '<div class="text-gray-400">No results to display</div>';
-                    }
-                    
-                    addMessage(resultHtml, 'assistant');
-                } else {
-                    addMessage('❌ Error: ' + escapeHtml(data.message || 'Unknown error'), 'assistant');
-                }
-            } catch (error) {
-                document.getElementById(loadingId)?.remove();
-                addMessage('❌ Error: ' + escapeHtml(error.message), 'assistant');
-            }
-        }
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
 
-        // Add message to chat
-        function addMessage(content, type, id = null) {
-            const messagesDiv = document.getElementById('chatMessages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message message-${type}`;
-            if (id) messageDiv.id = id;
-            messageDiv.innerHTML = content;
-            messagesDiv.appendChild(messageDiv);
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
-        }
-
-        // Utility functions
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // Drag and drop
-        const uploadZone = document.getElementById('uploadZone');
-        
-        uploadZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadZone.classList.add('dragover');
-        });
-
-        uploadZone.addEventListener('dragleave', () => {
-            uploadZone.classList.remove('dragover');
-        });
-
-        uploadZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadZone.classList.remove('dragover');
-            
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                document.getElementById('fileInput').files = files;
-                document.getElementById('fileInput').dispatchEvent(new Event('change'));
-            }
-        });
-    </script>
+/* ─── Drag & drop ── */
+const uploadZone = document.getElementById('uploadZone');
+uploadZone.addEventListener('dragover',  (e) => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+uploadZone.addEventListener('dragleave', ()  => uploadZone.classList.remove('dragover'));
+uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove('dragover');
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        document.getElementById('fileInput').files = files;
+        document.getElementById('fileInput').dispatchEvent(new Event('change'));
+    }
+});
+</script>
 </body>
 </html>

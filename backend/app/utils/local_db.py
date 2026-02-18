@@ -1,132 +1,142 @@
-import sqlite3
-from pathlib import Path
+import os
+from contextlib import contextmanager
+from typing import Generator
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-DB_PATH = BASE_DIR / "memory.db"
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, Session
+
+from app.models.model import UserChat, History
+
+DATABASE_URL: str = os.getenv(
+    "DATABASE_URL",
+    "postgresql+psycopg://postgres:HariSR035@localhost:5432/analyticsAI"
+)
+
+engine = create_engine(
+    DATABASE_URL,
+    pool_size=5,
+    max_overflow=10,
+    pool_pre_ping=True,
+)
+
+SessionLocal = sessionmaker(
+    bind=engine,
+    autoflush=False,
+    autocommit=False,
+)
 
 
-def get_conn():
-    return sqlite3.connect(DB_PATH, check_same_thread=False)
-def init_db():
-    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
-    cur = conn.cursor()
+@contextmanager
+def db_session() -> Generator[Session, None, None]:
+    db = SessionLocal()
+    try:
+        yield db
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
 
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS session_files (
-            session_id TEXT PRIMARY KEY,
-            uploaded_file TEXT,
-            file_type TEXT,
-            schema TEXT,
-            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+
+def get_db() -> Generator[Session, None, None]:
+    """
+    Yield a SQLAlchemy session; close it when the request is done.
+    Usage in FastAPI:
+    """
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+def save_session_file_state(state: dict) -> UserChat:
+    """
+    Upsert a UserChat row for the given session_id.
+    """
+    with db_session() as db:
+
+        chat = (
+            db.query(UserChat)
+            .filter(UserChat.session_id == state["session_id"])
+            .first()
         )
-    """)
 
-    conn.commit()
-    conn.close()
+        if chat:
+            chat.uploaded_file = state.get("uploaded_file", chat.uploaded_file)
+            chat.file_type = state.get("file_type", chat.file_type)
+            chat.schema = state.get("schema", chat.schema)
+        else:
+            chat = UserChat(
+                session_id=state["session_id"],
+                user_id=1,
+                uploaded_file=state.get("uploaded_file"),
+                file_type=state.get("file_type"),
+                schema=state.get("schema"),
+            )
+            db.add(chat)
 
-def init_history_table():
-    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
-    cur = conn.cursor()
+        db.flush()
+        return chat
 
-    cur.execute("""
-        DROP TABLE IF EXISTS session_history
-    """)
 
-    cur.execute("""
-        CREATE TABLE session_history (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            session_id TEXT,
-            query TEXT,
-            answer TEXT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+def load_session_file_state(session_id: str) -> dict:
+    with db_session() as db:
+
+        chat = (
+            db.query(UserChat)
+            .filter(UserChat.session_id == session_id)
+            .first()
         )
-    """)
+
+        if not chat:
+            return {}
+
+        return {
+            "session_id": chat.session_id,
+            "user_id": chat.user_id,
+            "uploaded_file": chat.uploaded_file,
+            "file_type": chat.file_type,
+            "schema": chat.schema,
+        }
 
 
-    conn.commit()
-    conn.close()
+def save_history(session_id: str, query: str, answer: str, chart_code: str = None, report: str = None) -> History:
+    print(f"Saving history for session_id={session_id}, query={query}, answer={answer}, chart_code={chart_code}, report={report}")
+    with db_session() as db:
+
+        entry = History(
+            session_id=session_id,
+            query=query,
+            answer=answer,
+            chart_code = chart_code, 
+            report = report
+        )
+
+        db.add(entry)
+        db.flush()
+        return entry
 
 
-def get_conn():
-    return sqlite3.connect(DB_PATH, check_same_thread=False)
+def load_last_n_messages(session_id: str, n: int = 2) -> list[dict]:
+    with db_session() as db:
+
+        rows = (
+            db.query(History)
+            .filter(History.session_id == session_id)
+            .order_by(History.id.desc())
+            .limit(n)
+            .all()
+        )
+
+        rows.reverse()
+
+        return [
+            {"query": r.query, "answer": r.answer}
+            for r in rows
+        ]
 
 
-def save_session_file_state(state):
-    conn = get_conn()
-    cur = conn.cursor()
-
-    cur.execute("""
-        INSERT INTO session_files (session_id, uploaded_file, file_type, schema)
-        VALUES (?, ?, ?, ?)
-        ON CONFLICT(session_id) DO UPDATE SET
-            uploaded_file = excluded.uploaded_file,
-            file_type = excluded.file_type,
-            schema = excluded.schema,
-            updated_at = CURRENT_TIMESTAMP
-    """, (
-        state.get("session_id"),
-        state.get("uploaded_file"),
-        state.get("file_type"),
-        state.get("schema")
-    ))
-
-    conn.commit()
-    conn.close()
-
-
-def load_session_file_state(session_id):
-    conn = get_conn()
-    cur = conn.cursor()
-
-    cur.execute("""
-        SELECT uploaded_file, file_type, schema
-        FROM session_files
-        WHERE session_id = ?
-    """, (session_id,))
-
-    row = cur.fetchone()
-    conn.close()
-
-    if not row:
-        return {}
-
-    return {
-        "uploaded_file": row[0],
-        "file_type": row[1],
-        "schema": row[2]
-    }
-
-def save_history(session_id, query, answer):
-    conn = get_conn()
-    cur = conn.cursor()
-
-    cur.execute("""
-        INSERT INTO session_history (session_id, query, answer)
-        VALUES (?, ?, ?)
-    """, (session_id, query, answer))
-
-    conn.commit()
-    conn.close()
-
-def load_last_two_messages(session_id):
-    conn = get_conn()
-    cur = conn.cursor()
-
-    cur.execute("""
-        SELECT query, answer
-        FROM session_history
-        WHERE session_id = ?
-        ORDER BY id DESC
-        LIMIT 2
-    """, (session_id,))
-
-    rows = cur.fetchall()
-    conn.close()
-
-    # reverse so oldest → newest
-    rows.reverse()
-
-    return [
-        {"query": q, "answer": a}
-        for q, a in rows
-    ]
+def load_last_two_messages(session_id: str) -> list[dict]:
+    return load_last_n_messages(session_id, n=2)
