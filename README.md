@@ -1,57 +1,123 @@
 # AnalyticsAI
 
-This project implements a **LangGraph-based multi-agent workflow** that takes structured (files / databases), understands user intent, generates SQL queries, executes analytics, creates visualizations, and finally produces **natural-language summaries and reports**.
+AnalyticsAI is a LangGraph-based multi-agent analytics system that transforms structured data (CSV files, Excel files, SQL databases, or images containing tables) into executable analytics workflows using natural language.
+
+The system converts user questions into verified SQL queries, executes analytics safely, generates visualizations, produces natural-language summaries, and creates structured reports. It supports conversational interaction, secure authentication, and modular execution pipelines.
 
 ---
 
-## High-Level Workflow
+## Overview
 
-![Workflow Diagram](workflow.png)
+AnalyticsAI enables users to interact with structured datasets without writing SQL manually. It automatically:
 
-At a high level, the system follows this flow:
+* Understands user intent from natural language
+* Generates SQL queries
+* Verifies queries for safety and correctness
+* Executes analytics workflows
+* Produces charts
+* Generates summaries
+* Creates structured Markdown and optional PDF reports
+* Supports conversational follow-up queries
 
-1. **Input Understanding** – Classifies the uploaded file or user query
-2. **Data Ingestion** – Loads data into a database (SQLite/Postgres)
-3. **Schema Discovery** – Extracts tables & relationships
-4. **Planning Agent** – Decides what actions are needed (SQL, charts, summaries)
-5. **SQL Agent** – Generates, verifies, and executes SQL queries
-6. **Decision Node** – Routes output to charts, summaries, or reports
-7. **Chart Agent** – Creates visualizations when required
-8. **Summarization Agent** – Converts results into human-readable insights
-9. **Report Agent** – Generates a structured report and optional PDF
-10. **Chat Interface** – Allows conversational interaction at any point
+The system is designed with safety, modularity, and production-readiness in mind.
 
 ---
 
-## Core Components
+## Key Features
 
-### 1. Classify File (`classify_file`)
+### Multi-Source Data Support
 
-* Detects input type (CSV, SQL DB, query, etc.)
-* Determines whether ingestion or querying is required
+* CSV files
+* Excel files
+* Existing SQL databases (SQLite by default, PostgreSQL supported)
+* Images containing structured or handwritten tables
 
----
+### Secure Authentication
 
-### 2. Insert Node (`insert_node`)
+* Google OAuth 2.0 login
+* JWT-based session management
+* Token blacklisting support
 
-* Loads files (CSV / Excel) into SQLite or Postgres
-* Normalizes schema if required
+### Natural Language to SQL
 
----
+* Converts plain English questions into SQL
+* Multi-step SQL verification:
 
-### 3. Schema Extraction (`get_schema`)
+  * Manual table validation
+  * Manual column validation
+  * LLM-based syntax validation
+  * LLM-based intent alignment validation
+* Limited reflection retries (maximum two correction cycles)
 
-* Retrieves full database schema
-* Includes:
+### Automated Visualization
+
+* Automatic chart generation (bar, line, pie, etc.)
+* Dynamic chart specification creation
+* Image export of visualizations
+
+### LLM-Powered Summaries
+
+* Converts raw query results into concise, human-readable insights
+* Designed for executive-level explanations
+
+### Report Generation
+
+* Structured Markdown reports
+* Section-based planning
+* Optional PDF export
+
+### Conversational Workflow
+
+* Follow-up questions supported at any stage
+* Shared graph memory
+* Iterative refinement
+
+### Automatic Schema Discovery
+
+* Extracts:
 
   * Tables
   * Columns
   * Data types
-  * Relationships (foreign keys)
+  * Foreign key relationships
+* Preprocesses schema for downstream agents
 
-* Then preprocess the schema into a text
+---
 
-Used downstream by the planner and SQL agent.
+# Architecture Overview
+
+The system follows a structured multi-agent workflow:
+
+1. Input Classification
+2. Data Ingestion
+3. Schema Extraction
+4. Planning Agent
+5. SQL Subgraph
+6. Decision Routing
+7. Chart Subgraph
+8. Summarization
+9. Report Generation Subgraph
+10. Chat Interface
+
+---
+
+# High-Level Workflow
+
+![Workflow Diagram](workflow.png)
+
+### 1. Input Understanding
+
+Determines whether the input is a file, database, image, or direct query.
+
+### 2. Data Ingestion
+
+Loads CSV or Excel files into SQLite (default). PostgreSQL is supported as an alternative backend.
+
+### 3. Schema Discovery
+
+Extracts complete schema metadata including tables, columns, data types, and relationships.
+
+Example:
 
 ```
 TABLE: sem1_marks
@@ -71,38 +137,38 @@ TABLE: sem2_marks
   - computer_networks (integer)
 ```
 
----
+This schema is passed to the planner and SQL agent.
 
-### 4. Planner Agent (`planner`)
+### 4. Planning Agent
 
-* Brain of the system 
-* Converts user intent into a **structured execution plan**
-* Example plan:
+The planner converts user intent into a structured execution plan. Example:
 
 ```json
 {
-  "create_sql_query": "Retrieve a list of each student's marks in sem1 by unpivoting the maths, physics, chemistry, and english columns into rows with columns roll_no, student_name, subject, and mark.",
-  "verify_sql_query": "Inspect the constructed SQL for syntax errors, proper column references (student_name, maths, physics, chemistry, english), correct arithmetic aggregation, and ensure no unsafe operations. Confirm that the query will return one row per student with exactly the two specified columns.",
-  "execute_sql_query": "Run the verified SQL query against the database. Expected output: a table with one row for each student in sem1_marks, containing the columns student_name and total_marks (e.g., 120 rows if 120 students). This result set will be used as the data source for the bar chart.",
-  "create_charts": "Generate code for a vertical single‑series bar chart using the executed query result. Chart specifications: • Type: bar chart • X‑axis: student_name (categorical, displayed as readable labels, possibly rotated for many students) • Y‑axis: total_marks (numeric) • Title: \"Total Marks of Students – Semester 1\" • Axis labels: X – \"Student Name\", Y – \"Total Marks\" • Color theme: a single, contrasting color for all bars (e.g., #4A90E2) • Legend: not required (single series) • Output: save chart image to './assets/sem1_total_marks_bar.png' and return the file path.",
-  "execute_chart_code": "Execute the chart generation code to produce the bar chart image as specified, ensuring the image file is created at the designated path and is accessible for downstream use.",
-  "summarize_with_llm": "Provide a concise summary of the semester‑1 total marks distribution: highlight the number of students, the highest and lowest total marks, and any notable patterns (e.g., range, average). Include a reference to the generated chart image path './assets/sem1_total_marks_bar.png' so the user can view the visual representation."
+  "create_sql_query": "...",
+  "verify_sql_query": "...",
+  "execute_sql_query": "...",
+  "create_charts": "...",
+  "execute_chart_code": "...",
+  "summarize_with_llm": "..."
 }
 ```
 
+The planner determines the correct sequence of tools and ensures safe execution.
+
 ---
 
-### 5. SQL Agent (Subgraph)
+# SQL Agent (Subgraph)
 
-A dedicated subgraph responsible for **safe and correct SQL execution**.
+The SQL agent is responsible for safe and correct query generation and execution.
 
-**Flow:**
+Flow:
 
-* `create_sql_query`
-* `verify_sql_query`
-* `execute_sql_query`
+1. create_sql_query
+2. verify_sql_query
+3. execute_sql_query
 
-This separation prevents hallucinated or invalid SQL.
+Example query (unpivoting semester marks):
 
 ```sql
 SELECT
@@ -121,60 +187,245 @@ CROSS JOIN LATERAL
     ) AS v(subject, mark);
 ```
 
-`verify_sql_query` will conduct four checks:
-- Table name checks(Manual)
-- Column name checks(Manual)
-- Intent checks(LLM)
-- Syntax checks(LLM)
+Verification includes:
 
-and this feedback loop happens for a maximum of 2 times
+* Table name checks (manual)
+* Column name checks (manual)
+* Intent alignment checks (LLM)
+* Syntax validation (LLM)
+* Maximum two correction cycles
+
+This separation prevents hallucinated or unsafe SQL execution.
 
 ---
 
-
-### 6. Chart Agent (Subgraph)
+# Chart Agent (Subgraph)
 
 Responsible for:
 
 * Generating chart specifications
-* Executing chart code
-* Returning visual outputs
+* Producing Python plotting code
+* Executing chart generation
+* Saving image files
 
 Nodes:
 
-* `create_charts`
-* `execute_chart_code`
+* create_charts
+* execute_chart_code
 
-![Chart Diagram](./saved_graphs/Total_Marks_Bar_Chart_20260119_170312.jpg)
+Example chart output:
 
----
-
-### 7. Summarization Agent (`summarize_with_llm`)
-
-* Converts raw SQL / chart outputs into insights
-* Produces executive-friendly explanations
+![Chart Example](backend/saved_graphs/Subject_Average_Score_Bar_Chart_20260218_005038.jpg)
 
 ---
 
-### 8. Report Generation Agent (Subgraph)
+# Summarization Agent
 
-Creates a polished report pipeline:
-
-Nodes:
-
-* `report_planner`
-* `generate_summaries`
-* `generate_report`
-* `md_to_pdf`
-
-[Report summary](report.md)
+The summarization agent converts structured outputs into human-readable insights, highlighting trends, distributions, and key metrics.
 
 ---
 
-### 9. Chat Node (`chat`)
+# Report Generation Agent (Subgraph)
 
-* Allows conversational Q&A
-* Can be triggered at any stage
-* Uses shared graph memory
+Pipeline:
+
+1. report_planner
+2. generate_summaries
+3. generate_report
+4. md_to_pdf
+
+Outputs:
+
+* Structured Markdown report
+* Optional PDF version
+
+Example:
+
+[Report Example](report.md)
 
 ---
+
+# Chat Node
+
+The chat node enables conversational interaction with shared graph memory and can be invoked at any stage in the workflow.
+
+---
+
+# Project Structure
+
+```
+analytics-ai/
+├── README.md
+├── auth-backend
+│   └── app
+│       ├── auth/
+│       ├── config.py
+│       ├── database.py
+│       ├── main.py
+│       ├── models.py
+│       ├── router.py
+│       ├── schemas.py
+│       └── service.py
+├── backend
+│   ├── app
+│   │   ├── assets/
+│   │   ├── auth/
+│   │   ├── core/
+│   │   ├── graphs/
+│   │   ├── helper/
+│   │   ├── nodes/
+│   │   ├── routers/
+│   │   ├── services/
+│   │   ├── utils/
+│   │   └── main.py
+│   ├── saved_graphs/
+│   ├── static/
+│   └── uploads/
+├── frontend
+│   ├── src/
+│   │   ├── components/
+│   │   ├── context/
+│   │   ├── services/
+│   │   └── store/
+│   └── vite.config.js
+├── requirements.txt
+└── workflow.png
+```
+
+---
+
+# Getting Started
+
+## Prerequisites
+
+* Python 3.10 or higher
+* Node.js 18 or higher
+* SQLite (default)
+* PostgreSQL (optional)
+* Google OAuth 2.0 credentials
+
+---
+
+## Installation
+
+Clone the repository:
+
+```bash
+git clone https://github.com/yourusername/analytics-ai.git
+cd analytics-ai
+```
+
+Install backend dependencies:
+
+```bash
+cd backend
+pip install -r requirements.txt
+```
+
+Install authentication backend dependencies:
+
+```bash
+cd ../auth-backend
+pip install -r requirements.txt
+```
+
+Install frontend dependencies:
+
+```bash
+cd ../frontend
+npm install
+```
+
+---
+
+## Running the System
+
+Start services in separate terminals.
+
+Main backend (port 8000):
+
+```bash
+cd backend
+uvicorn app.main:app --port 8000 --reload
+```
+
+Authentication backend (port 8001):
+
+```bash
+cd ../auth-backend
+uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
+```
+
+Frontend:
+
+```bash
+cd ../frontend
+npm run dev
+```
+
+The frontend is typically available at:
+
+```
+http://localhost:5173
+```
+
+Log in using Google OAuth, upload a file or image, and begin querying in natural language.
+
+---
+
+# Authentication Flow
+
+1. User selects Google login
+2. Redirect to Google OAuth consent screen
+3. Callback handled by authentication backend
+4. JWT issued
+5. Token stored in frontend
+6. Protected routes become accessible
+
+---
+
+# Safety and Reliability Design
+
+* Structured multi-agent graph architecture
+* SQL verification before execution
+* Limited reflection cycles
+* Result caching
+* Modular subgraphs
+* Secure JWT-based authentication
+
+---
+
+# Technology Stack
+
+Backend:
+
+* FastAPI
+* LangGraph
+* LLM integration
+* SQLite / PostgreSQL
+* Matplotlib (for charts)
+
+Authentication Backend:
+
+* FastAPI
+* Google OAuth 2.0
+* JWT
+
+Frontend:
+
+* React (Vite)
+* Context API
+* Modular component architecture
+
+---
+
+# Summary
+
+AnalyticsAI is a modular, secure, and production-oriented multi-agent analytics system that:
+
+* Converts natural language into verified SQL
+* Executes analytics safely
+* Generates visualizations automatically
+* Produces executive-level summaries
+* Builds structured reports
+* Supports conversational analytics workflows
